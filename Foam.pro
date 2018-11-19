@@ -23,3 +23,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += main.cpp
 
 LIBS += -lSDL2 -lSDL2main
+
+HEADERS += \
+    Repack.h

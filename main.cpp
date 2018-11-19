@@ -1,57 +1,8 @@
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 #include <tuple>
 
-template<typename TTuple, typename TAddition>
-auto extend_tuple(const TTuple &tuple, const TAddition &addition)
-{
-	return std::tuple_cat(tuple, std::make_tuple(addition));
-}
-
-template<int TIndex, typename TTuple>
-using Element = typename std::tuple_element<TIndex, TTuple>::type;
-
-template<int TIndex, typename TTuple, typename TElement>
-struct Repack
-{
-	auto operator()(const TTuple &tuple, const TElement &element)
-	{
-		return extend_tuple(Repack<TIndex - 1, TTuple, TElement>()(tuple, element), std::get<TIndex>(tuple));
-	}
-};
-
-template<int TIndex, typename TTuple>
-struct Repack<TIndex, TTuple, Element<TIndex, TTuple>>
-{
-	auto operator()(const TTuple &tuple, const Element<TIndex, TTuple> &element)
-	{
-		return extend_tuple(Repack<TIndex - 1, TTuple, Element<TIndex, TTuple>>()(tuple, element), element);
-	}
-};
-
-template<typename TTuple, typename TElement>
-struct Repack<0, TTuple, TElement>
-{
-	auto operator()(const TTuple &tuple, const TElement &)
-	{
-		return std::make_tuple(std::get<0>(tuple));
-	}
-};
-
-template<typename TTuple>
-struct Repack<0, TTuple, Element<0, TTuple>>
-{
-	auto operator()(const TTuple &, const Element<0, TTuple> &element)
-	{
-		return std::make_tuple(element);
-	}
-};
-
-template<typename TTuple, typename TElement>
-TTuple repack(const TTuple &tuple, const TElement &element)
-{
-	return Repack<std::tuple_size<TTuple>::value - 1, TTuple, TElement>()(tuple, element);
-}
+#include "Repack.h"
 
 struct State
 {
@@ -167,13 +118,6 @@ struct RootState
 	SDL_Event *event;
 };
 
-template<typename TState>
-class Logic
-{
-	public:
-		virtual TState invoke(const TState &state) = 0;
-};
-
 template<int TId>
 struct ButtonState : public BasicControlState
 {
@@ -189,70 +133,67 @@ struct ButtonState : public BasicControlState
 };
 
 template<Operation TOperation, typename TState, int TId, typename ...TProperties>
-class ButtonLogic
+struct ButtonLogic
 {
 };
 
 template<typename TState, int TId, typename ...TProperties>
-class ButtonLogic<Operation::Initialize, TState, TId, TProperties...>
+struct ButtonLogic<Operation::Initialize, TState, TId, TProperties...>
 {
-	public:
-		auto invoke(const TState &state, TProperties &...)
-		{
-			return std::tuple_cat(std::make_tuple(ButtonState<TId>()), state);
-		}
+	auto invoke(const TState &state, TProperties &...)
+	{
+		return std::tuple_cat(std::make_tuple(ButtonState<TId>()), state);
+	}
 };
 
 template<typename TState, int TId, typename ...TProperties>
-class ButtonLogic<Operation::Update, TState, TId, TProperties...>
+struct ButtonLogic<Operation::Update, TState, TId, TProperties...>
 {
-	public:
-		auto invoke(const TState &state, TProperties &...properties)
+	auto invoke(const TState &state, TProperties &...properties)
+	{
+		const RootState &root = std::get<RootState>(state);
+
+		ButtonState<TId> button = std::get<ButtonState<TId>>(state);
+
+		apply_properties(button, properties...);
+
+		const SDL_Rect rect = { button.position.x, button.position.y, button.size.x, button.size.y };
+		const SDL_Point point = { root.event->motion.x, root.event->motion.y };
+
+		if (SDL_PointInRect(&point, &rect))
 		{
-			const RootState &root = std::get<RootState>(state);
-
-			ButtonState<TId> button = std::get<ButtonState<TId>>(state);
-
-			apply_properties(button, properties...);
-
-			const SDL_Rect rect = { button.position.x, button.position.y, button.size.x, button.size.y };
-			const SDL_Point point = { root.event->motion.x, root.event->motion.y };
-
-			if (SDL_PointInRect(&point, &rect))
-			{
-				return repack(state, button.with_state(VisualState::Highlight));
-			}
-
-			return repack(state, button.with_state(VisualState::Normal));
+			return repack(state, button.with_state(VisualState::Highlight));
 		}
+
+		return repack(state, button.with_state(VisualState::Normal));
+	}
 };
 
 template<typename TState, int TId, typename ...TProperties>
-class ButtonLogic<Operation::Draw, TState, TId, TProperties...>
+struct ButtonLogic<Operation::Draw, TState, TId, TProperties...>
 {
-	public:
-		auto invoke(const TState &state, TProperties &...)
+	auto invoke(const TState &state, TProperties &...)
+	{
+		const ButtonState<TId> &button = std::get<ButtonState<TId>>(state);
+		const RootState &root = std::get<RootState>(state);
+
+		const SDL_Rect rect = { button.position.x, button.position.y, button.size.x, button.size.y };
+
+		if (button.state == VisualState::Highlight)
 		{
-			const ButtonState<TId> &button = std::get<ButtonState<TId>>(state);
-			const RootState &root = std::get<RootState>(state);
-
-			const SDL_Rect rect = { button.position.x, button.position.y, button.size.x, button.size.y };
-
-			if (button.state == VisualState::Highlight)
-			{
-				SDL_FillRect(root.surface, &rect, 0xFFFF0000);
-			}
-			else
-			{
-				SDL_FillRect(root.surface, &rect, 0xFFFFFF00);
-			}
-
-			return state;
+			SDL_FillRect(root.surface, &rect, 0xFFFF0000);
 		}
+		else
+		{
+			SDL_FillRect(root.surface, &rect, 0xFFFFFF00);
+		}
+
+		return state;
+	}
 };
 
 template<int TId, Operation TOperation, typename TState, typename ...TProperties>
-auto Button(const TState &state, TProperties &...properties)
+auto Button(const TState &state, TProperties ...properties)
 {
 	ButtonLogic<TOperation, TState, TId, TProperties...> logic;
 
@@ -260,13 +201,13 @@ auto Button(const TState &state, TProperties &...properties)
 }
 
 template<typename TState, typename ...TChild>
-TState Horizontal(TState &state, const TChild &...)
+auto Horizontal(TState &state, const TChild &...)
 {
 	return state;
 }
 
 template<typename TState, typename ...TChild>
-TState Vertical(TState state, const TChild &...)
+auto Vertical(TState state, const TChild &...)
 {
 	return state;
 }
@@ -302,20 +243,19 @@ int main(int, char **)
 {
 	SDL_Init(SDL_INIT_EVERYTHING);
 
-	SDL_Window *window = SDL_CreateWindow("Pure", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN);
+	SDL_Window *window = SDL_CreateWindow("Foam", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN);
 	SDL_Surface *surface = SDL_GetWindowSurface(window);
 
 	State state;
 
-	RootState ws;
-	ws.window = window;
-	ws.surface = surface;
-	ws.event = new SDL_Event();
+	RootState root;
+	root.window = window;
+	root.surface = surface;
+	root.event = new SDL_Event();
 
-	auto tuple = std::make_tuple(ws, state);
-	auto init = layout<Operation::Initialize>(tuple);
+	const auto tuple = std::make_tuple(root, state);
 
-	run(init);
+	run(layout<Operation::Initialize>(tuple));
 
 	return 0;
 }
