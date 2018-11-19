@@ -113,9 +113,18 @@ void apply_properties(TState &state, TProperty &property, TProperties&... proper
 
 struct RootState
 {
+	RootState with_event(const SDL_Event &event) const
+	{
+		RootState copy(*this);
+		copy.event = event;
+
+		return copy;
+	}
+
 	SDL_Window *window;
 	SDL_Surface *surface;
-	SDL_Event *event;
+
+	SDL_Event event;
 };
 
 template<int TId>
@@ -140,7 +149,7 @@ struct ButtonLogic
 template<typename TState, int TId, typename ...TProperties>
 struct ButtonLogic<Operation::Initialize, TState, TId, TProperties...>
 {
-	auto invoke(const TState &state, TProperties &...)
+	static auto invoke(const TState &state, TProperties &...)
 	{
 		return std::tuple_cat(std::make_tuple(ButtonState<TId>()), state);
 	}
@@ -149,7 +158,7 @@ struct ButtonLogic<Operation::Initialize, TState, TId, TProperties...>
 template<typename TState, int TId, typename ...TProperties>
 struct ButtonLogic<Operation::Update, TState, TId, TProperties...>
 {
-	auto invoke(const TState &state, TProperties &...properties)
+	static auto invoke(const TState &state, TProperties &...properties)
 	{
 		const RootState &root = std::get<RootState>(state);
 
@@ -158,7 +167,7 @@ struct ButtonLogic<Operation::Update, TState, TId, TProperties...>
 		apply_properties(button, properties...);
 
 		const SDL_Rect rect = { button.position.x, button.position.y, button.size.x, button.size.y };
-		const SDL_Point point = { root.event->motion.x, root.event->motion.y };
+		const SDL_Point point = { root.event.motion.x, root.event.motion.y };
 
 		if (SDL_PointInRect(&point, &rect))
 		{
@@ -172,7 +181,7 @@ struct ButtonLogic<Operation::Update, TState, TId, TProperties...>
 template<typename TState, int TId, typename ...TProperties>
 struct ButtonLogic<Operation::Draw, TState, TId, TProperties...>
 {
-	auto invoke(const TState &state, TProperties &...)
+	static auto invoke(const TState &state, TProperties &...)
 	{
 		const ButtonState<TId> &button = std::get<ButtonState<TId>>(state);
 		const RootState &root = std::get<RootState>(state);
@@ -195,9 +204,7 @@ struct ButtonLogic<Operation::Draw, TState, TId, TProperties...>
 template<int TId, Operation TOperation, typename TState, typename ...TProperties>
 auto Button(const TState &state, TProperties ...properties)
 {
-	ButtonLogic<TOperation, TState, TId, TProperties...> logic;
-
-	return logic.invoke(state, properties...);
+	return ButtonLogic<TOperation, TState, TId, TProperties...>::invoke(state, properties...);
 }
 
 template<typename TState, typename ...TChild>
@@ -229,14 +236,22 @@ auto layout(const TState &state)
 template<typename TState>
 auto run(const TState &state) -> decltype(layout<Operation::Update>(state))
 {
+	SDL_Event event;
+
 	const RootState &root = std::get<RootState>(state);
 
 	SDL_UpdateWindowSurface(root.window);
 
 	SDL_FillRect(root.surface, nullptr, 0x00000000);
-	SDL_WaitEvent(root.event);
+	SDL_WaitEvent(&event);
 
-	return run(layout<Operation::Draw>(layout<Operation::Update>(state)));
+	return run(
+		layout<Operation::Draw>(
+			layout<Operation::Update>(
+				repack(state, root.with_event(event))
+			)
+		)
+	);
 }
 
 int main(int, char **)
@@ -251,7 +266,6 @@ int main(int, char **)
 	RootState root;
 	root.window = window;
 	root.surface = surface;
-	root.event = new SDL_Event();
 
 	const auto tuple = std::make_tuple(root, state);
 
