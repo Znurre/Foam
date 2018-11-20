@@ -22,7 +22,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # Input
 SOURCES += main.cpp
 
-LIBS += -lSDL2 -lSDL2main
+LIBS += -lSDL2 -lSDL2main -lSDL2_ttf
 
 HEADERS += \
     Repack.h \

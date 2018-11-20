@@ -2,6 +2,7 @@
 #define BUTTON_H
 
 #include <SDL.h>
+#include <SDL_ttf.h>
 
 #include <tuple>
 
@@ -14,6 +15,7 @@ struct ButtonState
 	STATE_PROPERTY(SDL_Point, size);
 	STATE_PROPERTY(SDL_Point, position);
 	STATE_PROPERTY(Callback<TUserState>, on_clicked);
+	STATE_PROPERTY(const char *, text);
 };
 
 template<Operation TOperation, typename TState, int TId, typename ...TProperties>
@@ -98,7 +100,7 @@ struct ButtonLogic<Operation::Draw, TState, TId, TProperties...>
 		const auto &button = std::get<ButtonState<TId, UserState<TState>>>(state);
 		const auto &root = std::get<RootState>(state);
 
-		const SDL_Rect rect = { button.position.x, button.position.y, button.size.x, button.size.y };
+		SDL_Rect rect = { button.position.x, button.position.y, button.size.x, button.size.y };
 
 		if (button.state == VisualState::Highlight)
 		{
@@ -107,6 +109,14 @@ struct ButtonLogic<Operation::Draw, TState, TId, TProperties...>
 		else
 		{
 			SDL_FillRect(root.surface, &rect, 0xFFFFFF00);
+		}
+
+		if (button.text)
+		{
+			auto surface = TTF_RenderUTF8_Blended(root.font, button.text, SDL_Color { 0, 0, 0, 255 });
+
+			SDL_BlitSurface(surface, nullptr, root.surface, &rect);
+			SDL_FreeSurface(surface);
 		}
 
 		return state;

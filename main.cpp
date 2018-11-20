@@ -1,4 +1,5 @@
 #include <SDL.h>
+//#include <SDL_ttf.h>
 
 #include <tuple>
 
@@ -8,12 +9,26 @@
 
 struct State
 {
+	State()
+		: counter(0)
+	{
+	}
+
 	State with_counter(int counter) const
 	{
 		State copy(*this);
 		copy.counter = counter;
 
 		return copy;
+	}
+
+	const char *get_button_text() const
+	{
+		static char string[100];
+
+		sprintf(string, "Value: %d", counter);
+
+		return string;
 	}
 
 	int counter;
@@ -50,10 +65,12 @@ auto layout(const TState &state)
 				, position = SDL_Point { 120, 100 - std::get<State>(state).counter * 5 }
 				, size = SDL_Point { 100, 30 }
 				, on_clicked = &decrement_counter
+				, text = std::get<State>(state).get_button_text()
 			)
 			, position = SDL_Point { 10, 100 + std::get<State>(state).counter * 5 }
 			, size = SDL_Point { 100, 30 }
 			, on_clicked = &increment_counter
+			, text = std::get<State>(state).get_button_text()
 		);
 }
 
@@ -81,15 +98,18 @@ auto run(const TState &state) -> decltype(layout<Operation::Update>(state))
 int main(int, char **)
 {
 	SDL_Init(SDL_INIT_EVERYTHING);
+	TTF_Init();
 
 	auto window = SDL_CreateWindow("Foam", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN);
 	auto surface = SDL_GetWindowSurface(window);
+	auto font = TTF_OpenFont("Liberation Sans, Regular.ttf", 12);
 
 	State state;
 
 	RootState root;
 	root.window = window;
 	root.surface = surface;
+	root.font = font;
 
 	const auto tuple = std::make_tuple(root, state);
 

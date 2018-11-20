@@ -2,6 +2,7 @@
 #define COMMON_H
 
 #include <SDL.h>
+#include <SDL_ttf.h>
 
 template<typename TState>
 using UserState = typename std::tuple_element<std::tuple_size<TState>::value - 1, TState>::type;
@@ -47,6 +48,8 @@ struct RootState
 
 	SDL_Window *window;
 	SDL_Surface *surface;
+
+	TTF_Font *font;
 
 	SDL_Event event;
 };

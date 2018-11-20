@@ -39,5 +39,6 @@ type name;\
 API_PROPERTY(size)
 API_PROPERTY(position)
 API_PROPERTY(on_clicked)
+API_PROPERTY(text)
 
 #endif // PROPERTIES_H
