@@ -6,7 +6,7 @@ CONFIG -= qt
 
 TEMPLATE = app
 TARGET = Foam
-INCLUDEPATH += .
+INCLUDEPATH += . /usr/include/SDL2
 
 # The following define makes your compiler warn you if you use any
 # feature of Qt which has been marked as deprecated (the exact warnings
@@ -25,4 +25,7 @@ SOURCES += main.cpp
 LIBS += -lSDL2 -lSDL2main
 
 HEADERS += \
-    Repack.h
+    Repack.h \
+    Properties.h \
+    Button.h \
+    Common.h
