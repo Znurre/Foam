@@ -4,9 +4,15 @@
 #include <tuple>
 
 template<typename TTuple, typename TAddition>
-auto extend_tuple(const TTuple &tuple, const TAddition &addition)
+auto tuple_append(const TTuple &tuple, const TAddition &addition)
 {
 	return std::tuple_cat(tuple, std::make_tuple(addition));
+}
+
+template<typename TTuple, typename TAddition>
+auto tuple_prepend(const TAddition &addition, const TTuple &tuple)
+{
+	return std::tuple_cat(std::make_tuple(addition), tuple);
 }
 
 template<int TIndex, typename TTuple>
@@ -17,7 +23,7 @@ struct Repack
 {
 	static auto value(const TTuple &tuple, const TElement &element)
 	{
-		return extend_tuple(Repack<TIndex - 1, TTuple, TElement>::value(tuple, element), std::get<TIndex>(tuple));
+		return tuple_append(Repack<TIndex - 1, TTuple, TElement>::value(tuple, element), std::get<TIndex>(tuple));
 	}
 };
 
@@ -26,7 +32,7 @@ struct Repack<TIndex, TTuple, Element<TIndex, TTuple>>
 {
 	static auto value(const TTuple &tuple, const Element<TIndex, TTuple> &element)
 	{
-		return extend_tuple(Repack<TIndex - 1, TTuple, Element<TIndex, TTuple>>::value(tuple, element), element);
+		return tuple_append(Repack<TIndex - 1, TTuple, Element<TIndex, TTuple>>::value(tuple, element), element);
 	}
 };
 

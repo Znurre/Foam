@@ -1,4 +1,4 @@
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include <tuple>
 
@@ -6,6 +6,15 @@
 
 struct State
 {
+	State with_counter(int counter) const
+	{
+		State copy(*this);
+		copy.counter = counter;
+
+		return copy;
+	}
+
+	int counter;
 };
 
 template<typename TState, typename TValue>
@@ -77,18 +86,66 @@ class Property
 		IPropertyValueApplier<TState, TValue> &m_applier;
 };
 
-PositionPropertyValueApplier positionPropertyValueApplier;
-SizePropertyValueApplier sizePropertyValueApplier;
-
-Property<BasicControlState, SDL_Point> position(positionPropertyValueApplier);
-Property<BasicControlState, SDL_Point> size(sizePropertyValueApplier);
-
 enum class VisualState
 {
 	Normal = 0,
 	Highlight,
 	Disabled
 };
+
+template<typename TUserState>
+using Callback = TUserState (*)(const TUserState &state);
+
+template<typename TState>
+using UserState = typename std::tuple_element<std::tuple_size<TState>::value - 1, TState>::type;
+
+template<typename TUserState>
+struct ButtonStateBase : public BasicControlState
+{
+	Callback<TUserState> on_clicked;
+};
+
+template<int TId, typename TUserState>
+struct ButtonState : public ButtonStateBase<TUserState>
+{
+	ButtonState<TId, TUserState> with_state(VisualState state) const
+	{
+		ButtonState<TId, TUserState> copy(*this);
+		copy.state = state;
+
+		return copy;
+	}
+
+	VisualState state;
+};
+
+template<typename TUserState>
+struct CallbackPropertyValueApplier : public IPropertyValueApplier<ButtonStateBase<TUserState>, Callback<TUserState>>
+{
+	void apply(ButtonStateBase<TUserState> &state, const Callback<TUserState> &value) override
+	{
+		state.on_clicked = value;
+	}
+};
+
+struct CallbackProperty
+{
+	template<typename TUserState>
+	auto operator =(Callback<TUserState> callback)
+	{
+		static CallbackPropertyValueApplier<TUserState> applier;
+
+		return PropertyValue<ButtonStateBase<TUserState>, Callback<TUserState>>(applier, callback);
+	}
+};
+
+PositionPropertyValueApplier positionPropertyValueApplier;
+SizePropertyValueApplier sizePropertyValueApplier;
+
+Property<BasicControlState, SDL_Point> position(positionPropertyValueApplier);
+Property<BasicControlState, SDL_Point> size(sizePropertyValueApplier);
+
+CallbackProperty on_clicked;
 
 enum class Operation
 {
@@ -127,20 +184,6 @@ struct RootState
 	SDL_Event event;
 };
 
-template<int TId>
-struct ButtonState : public BasicControlState
-{
-	ButtonState<TId> with_state(VisualState state) const
-	{
-		ButtonState<TId> copy(*this);
-		copy.state = state;
-
-		return copy;
-	}
-
-	VisualState state;
-};
-
 template<Operation TOperation, typename TState, int TId, typename ...TProperties>
 struct ButtonLogic
 {
@@ -151,7 +194,7 @@ struct ButtonLogic<Operation::Initialize, TState, TId, TProperties...>
 {
 	static auto invoke(const TState &state, TProperties &...)
 	{
-		return std::tuple_cat(std::make_tuple(ButtonState<TId>()), state);
+		return tuple_prepend(ButtonState<TId, UserState<TState>>(), state);
 	}
 };
 
@@ -160,11 +203,49 @@ struct ButtonLogic<Operation::Update, TState, TId, TProperties...>
 {
 	static auto invoke(const TState &state, TProperties &...properties)
 	{
-		const RootState &root = std::get<RootState>(state);
-
-		ButtonState<TId> button = std::get<ButtonState<TId>>(state);
+		// This should be const& in the future
+		auto button = std::get<ButtonState<TId, UserState<TState>>>(state);
 
 		apply_properties(button, properties...);
+
+		return handle_events(
+			calculate_state(
+				repack(state, button)
+			)
+		);
+	}
+
+	static auto handle_events(const TState &state)
+	{
+		const auto &root = std::get<RootState>(state);
+		const auto &user = std::get<UserState<TState>>(state);
+		const auto &button = std::get<ButtonState<TId, UserState<TState>>>(state);
+
+		if (button.on_clicked == nullptr)
+		{
+			return state;
+		}
+
+		if (root.event.button.type != SDL_MOUSEBUTTONDOWN)
+		{
+			return state;
+		}
+
+		const SDL_Rect rect = { button.position.x, button.position.y, button.size.x, button.size.y };
+		const SDL_Point point = { root.event.motion.x, root.event.motion.y };
+
+		if (SDL_PointInRect(&point, &rect))
+		{
+			return repack(state, button.on_clicked(user));
+		}
+
+		return state;
+	}
+
+	static auto calculate_state(const TState &state)
+	{
+		const auto &root = std::get<RootState>(state);
+		const auto &button = std::get<ButtonState<TId, UserState<TState>>>(state);
 
 		const SDL_Rect rect = { button.position.x, button.position.y, button.size.x, button.size.y };
 		const SDL_Point point = { root.event.motion.x, root.event.motion.y };
@@ -183,8 +264,8 @@ struct ButtonLogic<Operation::Draw, TState, TId, TProperties...>
 {
 	static auto invoke(const TState &state, TProperties &...)
 	{
-		const ButtonState<TId> &button = std::get<ButtonState<TId>>(state);
-		const RootState &root = std::get<RootState>(state);
+		const auto &button = std::get<ButtonState<TId, UserState<TState>>>(state);
+		const auto &root = std::get<RootState>(state);
 
 		const SDL_Rect rect = { button.position.x, button.position.y, button.size.x, button.size.y };
 
@@ -219,17 +300,29 @@ auto Vertical(TState state, const TChild &...)
 	return state;
 }
 
+State increment_counter(const State &state)
+{
+	return state.with_counter(state.counter + 1);
+}
+
+State decrement_counter(const State &state)
+{
+	return state.with_counter(state.counter - 1);
+}
+
 template<Operation TOperation, typename TState>
 auto layout(const TState &state)
 {
 	return
 		Button<1, TOperation>(
 			Button<2, TOperation>(state
-				, position = SDL_Point { 120, 10 }
+				, position = SDL_Point { 120, 100 - std::get<State>(state).counter * 5 }
 				, size = SDL_Point { 100, 30 }
+				, on_clicked = &decrement_counter
 			)
-			, position = SDL_Point { 10, 10 }
+			, position = SDL_Point { 10, 100 + std::get<State>(state).counter * 5 }
 			, size = SDL_Point { 100, 30 }
+			, on_clicked = &increment_counter
 		);
 }
 
@@ -238,7 +331,7 @@ auto run(const TState &state) -> decltype(layout<Operation::Update>(state))
 {
 	SDL_Event event;
 
-	const RootState &root = std::get<RootState>(state);
+	const auto &root = std::get<RootState>(state);
 
 	SDL_UpdateWindowSurface(root.window);
 
@@ -258,8 +351,8 @@ int main(int, char **)
 {
 	SDL_Init(SDL_INIT_EVERYTHING);
 
-	SDL_Window *window = SDL_CreateWindow("Foam", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN);
-	SDL_Surface *surface = SDL_GetWindowSurface(window);
+	auto window = SDL_CreateWindow("Foam", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN);
+	auto surface = SDL_GetWindowSurface(window);
 
 	State state;
 
