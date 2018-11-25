@@ -1,5 +1,7 @@
+#include <QApplication>
+
 #include <SDL.h>
-//#include <SDL_ttf.h>
+#include <SDL_ttf.h>
 
 #include <tuple>
 
@@ -33,18 +35,6 @@ struct State
 
 	int counter;
 };
-
-template<typename TState, typename ...TChild>
-auto Horizontal(TState &state, const TChild &...)
-{
-	return state;
-}
-
-template<typename TState, typename ...TChild>
-auto Vertical(TState state, const TChild &...)
-{
-	return state;
-}
 
 State increment_counter(const State &state)
 {
@@ -83,8 +73,8 @@ auto run(const TState &state) -> decltype(layout<Operation::Update>(state))
 
 	SDL_UpdateWindowSurface(root.window);
 
-	SDL_FillRect(root.surface, nullptr, 0x00000000);
 	SDL_WaitEvent(&event);
+	SDL_FillRect(root.surface, nullptr, 0xFFeff0f1);
 
 	return run(
 		layout<Operation::Draw>(
@@ -95,12 +85,14 @@ auto run(const TState &state) -> decltype(layout<Operation::Update>(state))
 	);
 }
 
-int main(int, char **)
+int main(int argc, char **argv)
 {
+	QApplication application(argc, argv);
+
 	SDL_Init(SDL_INIT_EVERYTHING);
 	TTF_Init();
 
-	auto window = SDL_CreateWindow("Foam", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN);
+	auto window = SDL_CreateWindow("Foam", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
 	auto surface = SDL_GetWindowSurface(window);
 	auto font = TTF_OpenFont("Liberation Sans, Regular.ttf", 12);
 

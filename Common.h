@@ -26,6 +26,7 @@ enum class VisualState
 {
 	Normal = 0,
 	Highlight,
+	Pressed,
 	Disabled
 };
 

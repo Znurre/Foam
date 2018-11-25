@@ -1,11 +1,16 @@
 #ifndef BUTTON_H
 #define BUTTON_H
 
+#include <QApplication>
 #include <SDL.h>
 #include <SDL_ttf.h>
 
 #include <tuple>
 
+#include <QStyleOptionButton>
+#include <QStylePainter>
+
+#include "SDLPaintEngine.h"
 #include "Common.h"
 
 template<int TId, typename TUserState>
@@ -83,12 +88,17 @@ struct ButtonLogic<Operation::Update, TState, TId, TProperties...>
 		const SDL_Rect rect = { button.position.x, button.position.y, button.size.x, button.size.y };
 		const SDL_Point point = { root.event.motion.x, root.event.motion.y };
 
-		if (SDL_PointInRect(&point, &rect))
+		if (!SDL_PointInRect(&point, &rect))
 		{
-			return repack(state, button.with_state(VisualState::Highlight));
+			return repack(state, button.with_state(VisualState::Normal));
 		}
 
-		return repack(state, button.with_state(VisualState::Normal));
+		if (root.event.button.type == SDL_MOUSEBUTTONDOWN)
+		{
+			return repack(state, button.with_state(VisualState::Pressed));
+		}
+
+		return repack(state, button.with_state(VisualState::Highlight));
 	}
 };
 
@@ -100,24 +110,26 @@ struct ButtonLogic<Operation::Draw, TState, TId, TProperties...>
 		const auto &button = std::get<ButtonState<TId, UserState<TState>>>(state);
 		const auto &root = std::get<RootState>(state);
 
-		SDL_Rect rect = { button.position.x, button.position.y, button.size.x, button.size.y };
+		SDLPaintDevice device(root.surface);
+
+		QPainter painter(&device);
+
+		QStyleOptionButton option;
+		option.rect = QRect(button.position.x, button.position.y, button.size.x, button.size.y);
+		option.text = button.text;
+		option.state = QStyle::State_Active | QStyle::State_Enabled;
 
 		if (button.state == VisualState::Highlight)
 		{
-			SDL_FillRect(root.surface, &rect, 0xFFFF0000);
-		}
-		else
-		{
-			SDL_FillRect(root.surface, &rect, 0xFFFFFF00);
+			option.state |= QStyle::State_MouseOver;
 		}
 
-		if (button.text)
+		if (button.state == VisualState::Pressed)
 		{
-			auto surface = TTF_RenderUTF8_Blended(root.font, button.text, SDL_Color { 0, 0, 0, 255 });
-
-			SDL_BlitSurface(surface, nullptr, root.surface, &rect);
-			SDL_FreeSurface(surface);
+			option.state |= QStyle::State_Sunken;
 		}
+
+		QApplication::style()->drawControl(QStyle::CE_PushButton, &option, &painter, nullptr);
 
 		return state;
 	}
