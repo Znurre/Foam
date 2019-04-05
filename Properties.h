@@ -40,5 +40,6 @@ API_PROPERTY(size)
 API_PROPERTY(position)
 API_PROPERTY(on_clicked)
 API_PROPERTY(text)
+API_PROPERTY(color)
 
 #endif // PROPERTIES_H

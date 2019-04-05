@@ -30,4 +30,5 @@ HEADERS += \
     Button.h \
     Common.h \
     SDLPaintEngine.h \
-    Context.h
+    Context.h \
+    Rectangle.h

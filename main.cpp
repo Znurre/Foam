@@ -8,6 +8,7 @@
 #include "Repack.h"
 #include "Properties.h"
 #include "Button.h"
+#include "Rectangle.h"
 
 struct State
 {
@@ -50,17 +51,22 @@ template<Operation TOperation, typename TContext>
 auto layout(const TContext &context)
 {
 	return
-		Button<TOperation>(
-			Button<TOperation>(context
-				, position = SDL_Point { 120, 100 - std::get<State>(context.state).counter * 5 }
+		Rectangle<TOperation>(
+			Button<TOperation>(
+				Button<TOperation>(context
+					, position = SDL_Point { 120, 100 - std::get<State>(context.state).counter * 5 }
+					, size = SDL_Point { 100, 30 }
+					, on_clicked = &decrement_counter
+					, text = std::get<State>(context.state).get_button_text()
+				)
+				, position = SDL_Point { 10, 100 + std::get<State>(context.state).counter * 5 }
 				, size = SDL_Point { 100, 30 }
-				, on_clicked = &decrement_counter
+				, on_clicked = &increment_counter
 				, text = std::get<State>(context.state).get_button_text()
 			)
-			, position = SDL_Point { 10, 100 + std::get<State>(context.state).counter * 5 }
-			, size = SDL_Point { 100, 30 }
-			, on_clicked = &increment_counter
-			, text = std::get<State>(context.state).get_button_text()
+			, position = SDL_Point { 300, 10 }
+			, size = SDL_Point { 100, 100 }
+			, color = SDL_Color { 0xFF, 0x00, 0x00, 0xFF }
 		);
 }
 
