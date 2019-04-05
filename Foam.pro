@@ -29,4 +29,5 @@ HEADERS += \
     Properties.h \
     Button.h \
     Common.h \
-    SDLPaintEngine.h
+    SDLPaintEngine.h \
+    Context.h

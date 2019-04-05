@@ -4,8 +4,7 @@
 #include <SDL.h>
 #include <SDL_ttf.h>
 
-template<typename TState>
-using UserState = typename std::tuple_element<std::tuple_size<TState>::value - 1, TState>::type;
+#include "Context.h"
 
 template<typename TUserState>
 using Callback = TUserState (*)(const TUserState &state);

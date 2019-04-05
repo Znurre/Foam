@@ -46,26 +46,26 @@ State decrement_counter(const State &state)
 	return state.with_counter(state.counter - 1);
 }
 
-template<Operation TOperation, typename TState>
-auto layout(const TState &state)
+template<Operation TOperation, typename TContext>
+auto layout(const TContext &context)
 {
 	return
-		Button<1, TOperation>(
-			Button<2, TOperation>(state
-				, position = SDL_Point { 120, 100 - std::get<State>(state).counter * 5 }
+		Button<TOperation>(
+			Button<TOperation>(context
+				, position = SDL_Point { 120, 100 - std::get<State>(context.state).counter * 5 }
 				, size = SDL_Point { 100, 30 }
 				, on_clicked = &decrement_counter
-				, text = std::get<State>(state).get_button_text()
+				, text = std::get<State>(context.state).get_button_text()
 			)
-			, position = SDL_Point { 10, 100 + std::get<State>(state).counter * 5 }
+			, position = SDL_Point { 10, 100 + std::get<State>(context.state).counter * 5 }
 			, size = SDL_Point { 100, 30 }
 			, on_clicked = &increment_counter
-			, text = std::get<State>(state).get_button_text()
+			, text = std::get<State>(context.state).get_button_text()
 		);
 }
 
 template<typename TState>
-auto run(const TState &state) -> decltype(layout<Operation::Update>(state))
+auto run(const TState &state) -> decltype(strip_level(layout<Operation::Update>(make_context(state))))
 {
 	SDL_Event event;
 
@@ -77,9 +77,13 @@ auto run(const TState &state) -> decltype(layout<Operation::Update>(state))
 	SDL_FillRect(root.surface, nullptr, 0xFFeff0f1);
 
 	return run(
-		layout<Operation::Draw>(
-			layout<Operation::Update>(
-				repack(state, root.with_event(event))
+		strip_level(
+			layout<Operation::Draw>(
+				reset_level(
+					layout<Operation::Update>(
+						repack(make_context(state), root.with_event(event))
+					)
+				)
 			)
 		)
 	);
@@ -104,8 +108,9 @@ int main(int argc, char **argv)
 	root.font = font;
 
 	const auto tuple = std::make_tuple(root, state);
+	const auto context = make_context(tuple);
 
-	run(layout<Operation::Initialize>(tuple));
+	run(strip_level(layout<Operation::Initialize>(context)));
 
 	return 0;
 }

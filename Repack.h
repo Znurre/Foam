@@ -3,6 +3,8 @@
 
 #include <tuple>
 
+#include "Common.h"
+
 template<typename TTuple, typename TAddition>
 auto tuple_append(const TTuple &tuple, const TAddition &addition)
 {
@@ -13,6 +15,12 @@ template<typename TTuple, typename TAddition>
 auto tuple_prepend(const TAddition &addition, const TTuple &tuple)
 {
 	return std::tuple_cat(std::make_tuple(addition), tuple);
+}
+
+template<int TLevel, typename TState, typename TAddition>
+auto context_prepend(const TAddition &addition, const Context<TLevel, TState> &context) -> Context<TLevel, decltype(tuple_prepend(addition, context.state))>
+{
+	return { tuple_prepend(addition, context.state) };
 }
 
 template<int TIndex, typename TTuple>
@@ -54,10 +62,10 @@ struct Repack<0, TTuple, Element<0, TTuple>>
 	}
 };
 
-template<typename TTuple, typename TElement>
-TTuple repack(const TTuple &tuple, const TElement &element)
+template<int TLevel, typename TTuple, template<int, typename> class TContext, typename TElement>
+TContext<TLevel, TTuple> repack(const TContext<TLevel, TTuple> &context, const TElement &element)
 {
-	return Repack<std::tuple_size<TTuple>::value - 1, TTuple, TElement>::value(tuple, element);
+	return { Repack<std::tuple_size<TTuple>::value - 1, TTuple, TElement>::value(context.state, element) };
 }
 
 #endif // REPACK_H

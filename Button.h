@@ -23,50 +23,50 @@ struct ButtonState
 	STATE_PROPERTY(const char *, text);
 };
 
-template<Operation TOperation, typename TState, int TId, typename ...TProperties>
+template<Operation TOperation, typename TContext, typename ...TProperties>
 struct ButtonLogic
 {
 };
 
-template<typename TState, int TId, typename ...TProperties>
-struct ButtonLogic<Operation::Initialize, TState, TId, TProperties...>
+template<typename TContext, typename ...TProperties>
+struct ButtonLogic<Operation::Initialize, TContext, TProperties...>
 {
-	static auto invoke(const TState &state, TProperties &...)
+	static auto invoke(const TContext &context, TProperties &...)
 	{
-		return tuple_prepend(ButtonState<TId, UserState<TState>>(), state);
+		return context_prepend(ButtonState<Level<TContext>, UserState<TContext>>(), context);
 	}
 };
 
-template<typename TState, int TId, typename ...TProperties>
-struct ButtonLogic<Operation::Update, TState, TId, TProperties...>
+template<typename TContext, typename ...TProperties>
+struct ButtonLogic<Operation::Update, TContext, TProperties...>
 {
-	static auto invoke(const TState &state, const TProperties &...properties)
+	static auto invoke(const TContext &context, const TProperties &...properties)
 	{
-		const auto &button = std::get<ButtonState<TId, UserState<TState>>>(state);
+		const auto &button = std::get<ButtonState<Level<TContext>, UserState<TContext>>>(context.state);
 
 		return handle_events(
 			calculate_state(
-				repack(state,
+				repack(context,
 					apply_properties(button, properties...)
 				)
 			)
 		);
 	}
 
-	static auto handle_events(const TState &state)
+	static auto handle_events(const TContext &context)
 	{
-		const auto &root = std::get<RootState>(state);
-		const auto &user = std::get<UserState<TState>>(state);
-		const auto &button = std::get<ButtonState<TId, UserState<TState>>>(state);
+		const auto &root = std::get<RootState>(context.state);
+		const auto &user = std::get<UserState<TContext>>(context.state);
+		const auto &button = std::get<ButtonState<Level<TContext>, UserState<TContext>>>(context.state);
 
 		if (button.on_clicked == nullptr)
 		{
-			return state;
+			return context;
 		}
 
 		if (root.event.button.type != SDL_MOUSEBUTTONDOWN)
 		{
-			return state;
+			return context;
 		}
 
 		const SDL_Rect rect = { button.position.x, button.position.y, button.size.x, button.size.y };
@@ -74,41 +74,41 @@ struct ButtonLogic<Operation::Update, TState, TId, TProperties...>
 
 		if (SDL_PointInRect(&point, &rect))
 		{
-			return repack(state, button.on_clicked(user));
+			return repack(context, button.on_clicked(user));
 		}
 
-		return state;
+		return context;
 	}
 
-	static auto calculate_state(const TState &state)
+	static auto calculate_state(const TContext &context)
 	{
-		const auto &root = std::get<RootState>(state);
-		const auto &button = std::get<ButtonState<TId, UserState<TState>>>(state);
+		const auto &root = std::get<RootState>(context.state);
+		const auto &button = std::get<ButtonState<Level<TContext>, UserState<TContext>>>(context.state);
 
 		const SDL_Rect rect = { button.position.x, button.position.y, button.size.x, button.size.y };
 		const SDL_Point point = { root.event.motion.x, root.event.motion.y };
 
 		if (!SDL_PointInRect(&point, &rect))
 		{
-			return repack(state, button.with_state(VisualState::Normal));
+			return repack(context, button.with_state(VisualState::Normal));
 		}
 
 		if (root.event.button.type == SDL_MOUSEBUTTONDOWN)
 		{
-			return repack(state, button.with_state(VisualState::Pressed));
+			return repack(context, button.with_state(VisualState::Pressed));
 		}
 
-		return repack(state, button.with_state(VisualState::Highlight));
+		return repack(context, button.with_state(VisualState::Highlight));
 	}
 };
 
-template<typename TState, int TId, typename ...TProperties>
-struct ButtonLogic<Operation::Draw, TState, TId, TProperties...>
+template<typename TContext, typename ...TProperties>
+struct ButtonLogic<Operation::Draw, TContext, TProperties...>
 {
-	static auto invoke(const TState &state, TProperties &...)
+	static auto invoke(const TContext &context, TProperties &...)
 	{
-		const auto &button = std::get<ButtonState<TId, UserState<TState>>>(state);
-		const auto &root = std::get<RootState>(state);
+		const auto &button = std::get<ButtonState<Level<TContext>, UserState<TContext>>>(context.state);
+		const auto &root = std::get<RootState>(context.state);
 
 		SDLPaintDevice device(root.surface);
 
@@ -131,14 +131,14 @@ struct ButtonLogic<Operation::Draw, TState, TId, TProperties...>
 
 		QApplication::style()->drawControl(QStyle::CE_PushButton, &option, &painter, nullptr);
 
-		return state;
+		return context;
 	}
 };
 
-template<int TId, Operation TOperation, typename TState, typename ...TProperties>
-auto Button(const TState &state, TProperties ...properties)
+template<Operation TOperation, typename TContext, typename ...TProperties>
+auto Button(const TContext &context, TProperties ...properties)
 {
-	return ButtonLogic<TOperation, TState, TId, TProperties...>::invoke(state, properties...);
+	return ButtonLogic<TOperation, decltype(level_up(context)), TProperties...>::invoke(level_up(context), properties...);
 }
 
 #endif // BUTTON_H
