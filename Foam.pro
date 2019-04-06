@@ -31,4 +31,5 @@ HEADERS += \
     Common.h \
     SDLPaintEngine.h \
     Context.h \
-    Rectangle.h
+    Rectangle.h \
+    MouseArea.h

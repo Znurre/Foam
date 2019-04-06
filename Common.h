@@ -21,19 +21,18 @@ TState apply_properties(const TState &state, const TProperty &property, const TP
 	return apply_properties(property.apply(state), properties...);
 }
 
+template<typename TState>
+auto parent(const TState &state)
+{
+	return std::get<0>(state);
+}
+
 enum class VisualState
 {
 	Normal = 0,
 	Highlight,
 	Pressed,
 	Disabled
-};
-
-enum class Operation
-{
-	Initialize,
-	Update,
-	Draw
 };
 
 struct RootState

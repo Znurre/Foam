@@ -135,10 +135,10 @@ struct ButtonLogic<Operation::Draw, TContext, TProperties...>
 	}
 };
 
-template<Operation TOperation, typename TContext, typename ...TProperties>
+template<typename TContext, typename ...TProperties>
 auto Button(const TContext &context, TProperties ...properties)
 {
-	return ButtonLogic<TOperation, decltype(level_up(context)), TProperties...>::invoke(level_up(context), properties...);
+	return ButtonLogic<Op<TContext>, decltype(level_up(context)), TProperties...>::invoke(level_up(context), properties...);
 }
 
 #endif // BUTTON_H

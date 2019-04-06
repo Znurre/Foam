@@ -59,10 +59,10 @@ struct RectangleLogic<Operation::Draw, TContext, TProperties...>
 	}
 };
 
-template<Operation TOperation, typename TContext, typename ...TProperties>
+template<typename TContext, typename ...TProperties>
 auto Rectangle(const TContext &context, TProperties ...properties)
 {
-	return RectangleLogic<TOperation, decltype(level_up(context)), TProperties...>::invoke(level_up(context), properties...);
+	return RectangleLogic<Op<TContext>, decltype(level_up(context)), TProperties...>::invoke(level_up(context), properties...);
 }
 
 #endif // RECTANGLE_H
