@@ -16,23 +16,25 @@ struct RectangleState
 	STATE_PROPERTY(SDL_Color, color);
 };
 
-template<Operation TOperation, typename TContext, typename ...TProperties>
+template<Operation TOperation>
 struct RectangleLogic
 {
 };
 
-template<typename TContext, typename ...TProperties>
-struct RectangleLogic<Operation::Initialize, TContext, TProperties...>
+template<>
+struct RectangleLogic<Operation::Initialize>
 {
+	template<typename TContext, typename ...TProperties>
 	static auto invoke(const TContext &context, TProperties &...)
 	{
 		return context_prepend(RectangleState<Level<TContext>, UserState<TContext>>(), context);
 	}
 };
 
-template<typename TContext, typename ...TProperties>
-struct RectangleLogic<Operation::Update, TContext, TProperties...>
+template<>
+struct RectangleLogic<Operation::Update>
 {
+	template<typename TContext, typename ...TProperties>
 	static auto invoke(const TContext &context, const TProperties &...properties)
 	{
 		const auto &rectangle = std::get<RectangleState<Level<TContext>, UserState<TContext>>>(context.state);
@@ -43,9 +45,10 @@ struct RectangleLogic<Operation::Update, TContext, TProperties...>
 	}
 };
 
-template<typename TContext, typename ...TProperties>
-struct RectangleLogic<Operation::Draw, TContext, TProperties...>
+template<>
+struct RectangleLogic<Operation::Draw>
 {
+	template<typename TContext, typename ...TProperties>
 	static auto invoke(const TContext &context, TProperties &...)
 	{
 		const auto &rectangle = std::get<RectangleState<Level<TContext>, UserState<TContext>>>(context.state);
@@ -62,7 +65,7 @@ struct RectangleLogic<Operation::Draw, TContext, TProperties...>
 template<typename TContext, typename ...TProperties>
 auto Rectangle(const TContext &context, TProperties ...properties)
 {
-	return RectangleLogic<Op<TContext>, decltype(level_up(context)), TProperties...>::invoke(level_up(context), properties...);
+	return RectangleLogic<Op<TContext>>::invoke(level_up(context), properties...);
 }
 
 #endif // RECTANGLE_H

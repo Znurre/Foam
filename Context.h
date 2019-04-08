@@ -22,12 +22,6 @@ Context<TOperation, 0, TState> make_context(const TState &state)
 	return { state };
 }
 
-template<Operation TNewOperation, Operation TOperation, int TLevel, typename TState>
-Context<TNewOperation, 0, TState> make_context(const Context<TOperation, TLevel, TState> &context)
-{
-	return { context.state };
-}
-
 template<Operation TOperation, int TLevel, typename TState>
 Context<TOperation, TLevel + 1, TState> level_up(const Context<TOperation, TLevel, TState> &context)
 {

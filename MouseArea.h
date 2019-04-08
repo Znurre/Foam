@@ -12,23 +12,25 @@ struct MouseAreaState
 	STATE_PROPERTY(Callback<TUserState>, on_click);
 };
 
-template<Operation TOperation, typename TContext, typename ...TProperties>
+template<Operation TOperation>
 struct MouseAreaLogic
 {
 };
 
-template<typename TContext, typename ...TProperties>
-struct MouseAreaLogic<Operation::Initialize, TContext, TProperties...>
+template<>
+struct MouseAreaLogic<Operation::Initialize>
 {
+	template<typename TContext, typename ...TProperties>
 	static auto invoke(const TContext &context, TProperties &...)
 	{
 		return context_prepend(MouseAreaState<Level<TContext>, UserState<TContext>>(), context);
 	}
 };
 
-template<typename TContext, typename ...TProperties>
-struct MouseAreaLogic<Operation::Update, TContext, TProperties...>
+template<>
+struct MouseAreaLogic<Operation::Update>
 {
+	template<typename TContext, typename ...TProperties>
 	static auto invoke(const TContext &context, const TProperties &...properties)
 	{
 		const auto &rectangle = std::get<MouseAreaState<Level<TContext>, UserState<TContext>>>(context.state);
@@ -39,19 +41,20 @@ struct MouseAreaLogic<Operation::Update, TContext, TProperties...>
 	}
 };
 
-template<typename TState, typename ...TProperties>
-struct MouseAreaLogic<Operation::Draw, TState, TProperties...>
+template<>
+struct MouseAreaLogic<Operation::Draw>
 {
-	static auto invoke(const TState &state, TProperties &...)
+	template<typename TContext, typename ...TProperties>
+	static auto invoke(const TContext &context, TProperties &...)
 	{
-		return state;
+		return context;
 	}
 };
 
 template<typename TContext, typename ...TProperties>
 auto MouseArea(const TContext &context, TProperties ...properties)
 {
-	return MouseAreaLogic<Op<TContext>, decltype(level_up(context)), TProperties...>::invoke(level_up(context), properties...);
+	return MouseAreaLogic<Op<TContext>>::invoke(level_up(context), properties...);
 }
 
 #endif // MOUSEAREA_H

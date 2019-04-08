@@ -11,6 +11,8 @@
 #include "Rectangle.h"
 #include "MouseArea.h"
 
+#undef main
+
 struct State
 {
 	State()

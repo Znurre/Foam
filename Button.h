@@ -23,23 +23,25 @@ struct ButtonState
 	STATE_PROPERTY(const char *, text);
 };
 
-template<Operation TOperation, typename TContext, typename ...TProperties>
+template<Operation TOperation>
 struct ButtonLogic
 {
 };
 
-template<typename TContext, typename ...TProperties>
-struct ButtonLogic<Operation::Initialize, TContext, TProperties...>
+template<>
+struct ButtonLogic<Operation::Initialize>
 {
+	template<typename TContext, typename ...TProperties>
 	static auto invoke(const TContext &context, TProperties &...)
 	{
 		return context_prepend(ButtonState<Level<TContext>, UserState<TContext>>(), context);
 	}
 };
 
-template<typename TContext, typename ...TProperties>
-struct ButtonLogic<Operation::Update, TContext, TProperties...>
+template<>
+struct ButtonLogic<Operation::Update>
 {
+	template<typename TContext, typename ...TProperties>
 	static auto invoke(const TContext &context, const TProperties &...properties)
 	{
 		const auto &button = std::get<ButtonState<Level<TContext>, UserState<TContext>>>(context.state);
@@ -53,6 +55,7 @@ struct ButtonLogic<Operation::Update, TContext, TProperties...>
 		);
 	}
 
+	template<typename TContext>
 	static auto handle_events(const TContext &context)
 	{
 		const auto &root = std::get<RootState>(context.state);
@@ -80,6 +83,7 @@ struct ButtonLogic<Operation::Update, TContext, TProperties...>
 		return context;
 	}
 
+	template<typename TContext>
 	static auto calculate_state(const TContext &context)
 	{
 		const auto &root = std::get<RootState>(context.state);
@@ -102,9 +106,10 @@ struct ButtonLogic<Operation::Update, TContext, TProperties...>
 	}
 };
 
-template<typename TContext, typename ...TProperties>
-struct ButtonLogic<Operation::Draw, TContext, TProperties...>
+template<>
+struct ButtonLogic<Operation::Draw>
 {
+	template<typename TContext, typename ...TProperties>
 	static auto invoke(const TContext &context, TProperties &...)
 	{
 		const auto &button = std::get<ButtonState<Level<TContext>, UserState<TContext>>>(context.state);
@@ -138,7 +143,7 @@ struct ButtonLogic<Operation::Draw, TContext, TProperties...>
 template<typename TContext, typename ...TProperties>
 auto Button(const TContext &context, TProperties ...properties)
 {
-	return ButtonLogic<Op<TContext>, decltype(level_up(context)), TProperties...>::invoke(level_up(context), properties...);
+	return ButtonLogic<Op<TContext>>::invoke(level_up(context), properties...);
 }
 
 #endif // BUTTON_H
