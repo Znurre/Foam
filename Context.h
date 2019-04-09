@@ -44,7 +44,7 @@ struct get_operation<Context<TOperation, TLevel, TState>>
 };
 
 template<typename T>
-constexpr Operation Op = get_operation<T>::value;
+constexpr Operation get_operation_v = get_operation<T>::value;
 
 template<typename T>
 struct get_level;
@@ -56,17 +56,19 @@ struct get_level<Context<TOperation, TLevel, TState>>
 };
 
 template<typename T>
-constexpr int Level = get_level<T>::value;
+constexpr int get_level_v = get_level<T>::value;
 
 template<typename TState>
-struct get_user_state;
+struct get_user_state  : std::tuple_element<std::tuple_size<TState>::value - 1, TState>
+{
+};
 
 template<Operation TOperation, int TLevel, typename TState>
 struct get_user_state<Context<TOperation, TLevel, TState>> : std::tuple_element<std::tuple_size<TState>::value - 1, TState>
 {
 };
 
-template<typename TState>
-using UserState = typename get_user_state<TState>::type;
+template<typename TContext>
+using get_user_state_t = typename get_user_state<TContext>::type;
 
 #endif // CONTEXT_H

@@ -75,61 +75,41 @@ State decrement_counter(const State &state)
 //		);
 //}
 
-auto layout()
+
+template<typename TState>
+auto layout(const TState &state)
 {
 	return Rectangle
 	{
 		Button
 		{
-			position = SDL_Point { 120, 100 },
+			position = SDL_Point { 120, 100 - state.counter * 5 },
 			size = SDL_Point { 100, 30 },
-			//on_clicked = &decrement_counter,
-			text = "Foo"
+			on_clicked = &decrement_counter,
+			text = state.get_button_text()
 		},
 
 		Button
 		{
-			position = SDL_Point { 10, 100 },
+			position = SDL_Point { 10, 100 + state.counter * 5 },
 			size = SDL_Point { 100, 30 },
-			//on_clicked = &increment_counter,
-			text = "Bar"
+			on_clicked = &increment_counter,
+			text = state.get_button_text()
 		},
 
 		position = SDL_Point { 100, 10 },
 		size = SDL_Point { 50, 50 },
 		color = SDL_Color { 0xFF, 0x00, 0x00, 0xFF },
 	};
-
-	/*return
-//		ButtonComposite(
-			Rectangle(
-				Button(
-					Button(context
-						, position = SDL_Point { 120, 100 - std::get<State>(context.state).counter * 5 }
-						, size = SDL_Point { 100, 30 }
-						, on_clicked = &decrement_counter
-						, text = std::get<State>(context.state).get_button_text()
-					)
-					, position = SDL_Point { 10, 100 + std::get<State>(context.state).counter * 5 }
-					, size = SDL_Point { 100, 30 }
-					, on_clicked = &increment_counter
-					, text = std::get<State>(context.state).get_button_text()
-				)
-				, position = SDL_Point { 100, 10 }
-				, size = SDL_Point { 50, 50 }
-				, color = SDL_Color { 0xFF, 0x00, 0x00, 0xFF }
-			);
-//			, position = SDL_Point { 300, 10 }
-//			, size = SDL_Point { 100, 100 }
-//		);*/
 }
 
 template <Operation TOperation, typename TState>
 auto layout(const TState &state)
 {
-	const auto root = layout();
-	const auto context = make_context<TOperation>(state);
-	const auto result = root.build(context);
+	const auto &user = read_user_state(state);
+	const auto &root = layout(user);
+	const auto &context = make_context<TOperation>(state);
+	const auto &result = root.build(context);
 
 	return strip_context(result);
 }

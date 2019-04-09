@@ -24,7 +24,7 @@ struct MouseAreaLogic<Operation::Initialize>
 	template<typename TContext, typename ...TProperties>
 	static auto invoke(const TContext &context, const std::tuple<TProperties...> &)
 	{
-		return context_prepend(MouseAreaState<Level<TContext>, UserState<TContext>>(), context);
+		return context_prepend(MouseAreaState<get_level_v<TContext>, get_user_state_t<TContext>>(), context);
 	}
 };
 
@@ -34,7 +34,7 @@ struct MouseAreaLogic<Operation::Update>
 	template<typename TContext, typename ...TProperties>
 	static auto invoke(const TContext &context, const std::tuple<TProperties...> &properties)
 	{
-		const auto &rectangle = std::get<MouseAreaState<Level<TContext>, UserState<TContext>>>(context.state);
+		const auto &rectangle = std::get<MouseAreaState<get_level_v<TContext>, get_user_state_t<TContext>>>(context.state);
 
 		return repack(context,
 			apply_properties(rectangle, properties)

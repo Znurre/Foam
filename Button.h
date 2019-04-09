@@ -34,7 +34,7 @@ struct ButtonLogic<Operation::Initialize>
 	template<typename TContext, typename ...TProperties>
 	static auto invoke(const TContext &context, const std::tuple<TProperties...> &)
 	{
-		return context_prepend(ButtonState<Level<TContext>, UserState<TContext>>(), context);
+		return context_prepend(ButtonState<get_level_v<TContext>, get_user_state_t<TContext>>(), context);
 	}
 };
 
@@ -44,7 +44,7 @@ struct ButtonLogic<Operation::Update>
 	template<typename TContext, typename ...TProperties>
 	static auto invoke(const TContext &context, const std::tuple<TProperties...> &properties)
 	{
-		const auto &button = std::get<ButtonState<Level<TContext>, UserState<TContext>>>(context.state);
+		const auto &button = std::get<ButtonState<get_level_v<TContext>, get_user_state_t<TContext>>>(context.state);
 
 		return handle_events(
 			calculate_state(
@@ -59,8 +59,8 @@ struct ButtonLogic<Operation::Update>
 	static auto handle_events(const TContext &context)
 	{
 		const auto &root = std::get<RootState>(context.state);
-		const auto &user = std::get<UserState<TContext>>(context.state);
-		const auto &button = std::get<ButtonState<Level<TContext>, UserState<TContext>>>(context.state);
+		const auto &user = std::get<get_user_state_t<TContext>>(context.state);
+		const auto &button = std::get<ButtonState<get_level_v<TContext>, get_user_state_t<TContext>>>(context.state);
 
 		if (button.on_clicked == nullptr)
 		{
@@ -87,7 +87,7 @@ struct ButtonLogic<Operation::Update>
 	static auto calculate_state(const TContext &context)
 	{
 		const auto &root = std::get<RootState>(context.state);
-		const auto &button = std::get<ButtonState<Level<TContext>, UserState<TContext>>>(context.state);
+		const auto &button = std::get<ButtonState<get_level_v<TContext>, get_user_state_t<TContext>>>(context.state);
 
 		const SDL_Rect rect = { button.position.x, button.position.y, button.size.x, button.size.y };
 		const SDL_Point point = { root.event.motion.x, root.event.motion.y };
@@ -112,7 +112,7 @@ struct ButtonLogic<Operation::Draw>
 	template<typename TContext, typename ...TProperties>
 	static auto invoke(const TContext &context, const std::tuple<TProperties...> &)
 	{
-		const auto &button = std::get<ButtonState<Level<TContext>, UserState<TContext>>>(context.state);
+		const auto &button = std::get<ButtonState<get_level_v<TContext>, get_user_state_t<TContext>>>(context.state);
 		const auto &root = std::get<RootState>(context.state);
 
 		SDLPaintDevice device(root.surface);

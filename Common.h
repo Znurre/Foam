@@ -38,7 +38,11 @@ TState apply_properties(const TState &state, const TTuple &tuple)
 	return apply_properties(state, tuple, std::make_index_sequence<std::tuple_size_v<TTuple>>());
 }
 
-
+template<typename TState>
+auto read_user_state(const TState &state)
+{
+	return std::get<get_user_state_t<TState>>(state);
+}
 
 template<typename TState>
 auto parent(const TState &state)

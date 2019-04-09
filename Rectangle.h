@@ -27,7 +27,7 @@ struct RectangleLogic<Operation::Initialize>
 	template<typename TContext, typename ...TProperties>
 	static auto invoke(const TContext &context, const std::tuple<TProperties...> &)
 	{
-		return context_prepend(RectangleState<Level<TContext>, UserState<TContext>>(), context);
+		return context_prepend(RectangleState<get_level_v<TContext>, get_user_state_t<TContext>>(), context);
 	}
 };
 
@@ -37,7 +37,7 @@ struct RectangleLogic<Operation::Update>
 	template<typename TContext, typename ...TProperties>
 	static auto invoke(const TContext &context, const std::tuple<TProperties...> &properties)
 	{
-		const auto &rectangle = std::get<RectangleState<Level<TContext>, UserState<TContext>>>(context.state);
+		const auto &rectangle = std::get<RectangleState<get_level_v<TContext>, get_user_state_t<TContext>>>(context.state);
 
 		return repack(context,
 			apply_properties(rectangle, properties)
@@ -51,7 +51,7 @@ struct RectangleLogic<Operation::Draw>
 	template<typename TContext, typename ...TProperties>
 	static auto invoke(const TContext &context, const std::tuple<TProperties...> &)
 	{
-		const auto &rectangle = std::get<RectangleState<Level<TContext>, UserState<TContext>>>(context.state);
+		const auto &rectangle = std::get<RectangleState<get_level_v<TContext>, get_user_state_t<TContext>>>(context.state);
 		const auto &root = std::get<RootState>(context.state);
 
 		const SDL_Rect bounds = { rectangle.position.x, rectangle.position.y, rectangle.size.x, rectangle.size.y };

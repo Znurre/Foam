@@ -101,7 +101,7 @@ struct Item : public Object
 		const auto properties = tuple_filter<PropertyTypePredicate>(m_parameters);
 		const auto children = tuple_filter<ChildrenTypePredicate>(m_parameters);
 
-		return expand_children(TLogic<Op<TContext>>::invoke(level_up(context), properties), children);
+		return expand_children(TLogic<get_operation_v<TContext>>::invoke(level_up(context), properties), children);
 	}
 
 	std::tuple<TParameters...> m_parameters;
