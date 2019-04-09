@@ -3,7 +3,6 @@
 
 #include <QApplication>
 #include <SDL.h>
-#include <SDL_ttf.h>
 
 #include <tuple>
 
@@ -12,6 +11,7 @@
 
 #include "SDLPaintEngine.h"
 #include "Common.h"
+#include "Item.h"
 
 template<int TId, typename TUserState>
 struct ButtonState
@@ -140,10 +140,13 @@ struct ButtonLogic<Operation::Draw>
 	}
 };
 
-template<typename TContext, typename ...TProperties>
-auto Button(const TContext &context, TProperties ...properties)
+template<typename ...TParameters>
+struct Button : public Item<ButtonLogic, TParameters...>
 {
-	return ButtonLogic<Op<TContext>>::invoke(level_up(context), std::make_tuple(properties...));
-}
+	Button(const TParameters &...parameters)
+		: Item<ButtonLogic, TParameters...>(parameters...)
+	{
+	}
+};
 
 #endif // BUTTON_H

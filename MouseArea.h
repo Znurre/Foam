@@ -2,6 +2,7 @@
 #define MOUSEAREA_H
 
 #include "Common.h"
+#include "Item.h"
 
 template<int TId, typename TUserState>
 struct MouseAreaState
@@ -51,10 +52,13 @@ struct MouseAreaLogic<Operation::Draw>
 	}
 };
 
-template<typename TContext, typename ...TProperties>
-auto MouseArea(const TContext &context, TProperties ...properties)
+template<typename ...TParameters>
+struct MouseArea : public Item<MouseAreaLogic, TParameters...>
 {
-	return MouseAreaLogic<Op<TContext>>::invoke(level_up(context), std::make_tuple(properties...));
-}
+	MouseArea(const TParameters &...parameters)
+		: Item<MouseAreaLogic, TParameters...>(parameters...)
+	{
+	}
+};
 
 #endif // MOUSEAREA_H

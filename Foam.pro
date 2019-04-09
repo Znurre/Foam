@@ -23,7 +23,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # Input
 SOURCES += main.cpp
 
-LIBS += -lSDL2 -lSDL2main -lSDL2_ttf
+LIBS += -lSDL2 -lSDL2main
 
 HEADERS += \
     Repack.h \
@@ -33,4 +33,5 @@ HEADERS += \
     SDLPaintEngine.h \
     Context.h \
     Rectangle.h \
-    MouseArea.h
+    MouseArea.h \
+    Item.h

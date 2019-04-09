@@ -2,11 +2,11 @@
 #define RECTANGLE_H
 
 #include <SDL.h>
-#include <SDL_ttf.h>
 
 #include <tuple>
 
 #include "Common.h"
+#include "Item.h"
 
 template<int TId, typename TUserState>
 struct RectangleState
@@ -62,10 +62,13 @@ struct RectangleLogic<Operation::Draw>
 	}
 };
 
-template<typename TContext, typename ...TProperties>
-auto Rectangle(const TContext &context, TProperties ...properties)
+template<typename ...TParameters>
+struct Rectangle : public Item<RectangleLogic, TParameters...>
 {
-	return RectangleLogic<Op<TContext>>::invoke(level_up(context), std::make_tuple(properties...));
-}
+	Rectangle(const TParameters &...parameters)
+		: Item<RectangleLogic, TParameters...>(parameters...)
+	{
+	}
+};
 
 #endif // RECTANGLE_H

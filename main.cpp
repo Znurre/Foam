@@ -1,7 +1,6 @@
 #include <QApplication>
 
 #include <SDL.h>
-#include <SDL_ttf.h>
 
 #include <tuple>
 
@@ -10,8 +9,6 @@
 #include "Button.h"
 #include "Rectangle.h"
 #include "MouseArea.h"
-
-#undef main
 
 struct State
 {
@@ -78,58 +75,32 @@ State decrement_counter(const State &state)
 //		);
 //}
 
-template<template<Operation> class TLogic, typename ...TParameters>
-struct Item
+auto layout()
 {
-	Item(const TParameters &...parameters)
-		: m_parameters(parameters...)
+	return Rectangle
 	{
-	}
-
-	static auto filter_properties(TParameters...)
-	{
-		return std::tuple_cat(std::conditional_t<std::is_base_of_v<Property, TParameters>
-			, std::tuple<TParameters>
-			, std::tuple<>>()...
-			);
-	}
-
-	template<typename TContext>
-	auto build(const TContext &context)
-	{
-		const auto properties = std::apply(&filter_properties, m_parameters);
-//		const auto children = std::apply(&filter_properties, m_parameters);
-
-		const auto logic = TLogic<Op<TContext>>::invoke(level_up(context), properties);
-		return 1;
-	}
-
-	std::tuple<TParameters...> m_parameters;
-};
-
-template<typename ...TParameters>
-struct ButtonItem : public Item<ButtonLogic, TParameters...>
-{
-	ButtonItem(const TParameters &...parameters)
-		: Item<ButtonLogic, TParameters...>(parameters...)
-	{
-	}
-};
-
-template<typename TContext>
-auto layout(const TContext &context)
-{
-	auto q = ButtonItem
-	{
-		ButtonItem
+		Button
 		{
+			position = SDL_Point { 120, 100 },
+			size = SDL_Point { 100, 30 },
+			//on_clicked = &decrement_counter,
+			//text = "Foo"
 		},
-		position = SDL_Point { 10, 20 }
+
+		Button
+		{
+			position = SDL_Point { 10, 100 },
+			size = SDL_Point { 100, 30 },
+			//on_clicked = &increment_counter,
+			//text = "Bar"
+		},
+
+		position = SDL_Point { 100, 10 },
+		size = SDL_Point { 50, 50 },
+		color = SDL_Color { 0xFF, 0x00, 0x00, 0xFF },
 	};
 
-	q.build(context);
-
-	return
+	/*return
 //		ButtonComposite(
 			Rectangle(
 				Button(
@@ -150,13 +121,17 @@ auto layout(const TContext &context)
 			);
 //			, position = SDL_Point { 300, 10 }
 //			, size = SDL_Point { 100, 100 }
-//		);
+//		);*/
 }
 
 template <Operation TOperation, typename TState>
 auto layout(const TState &state)
 {
-	return strip_context(layout(make_context<TOperation>(state)));
+	const auto root = layout();
+	const auto context = make_context<TOperation>(state);
+	const auto result = root.build(context);
+
+	return strip_context(result);
 }
 
 template<typename TState>
@@ -185,18 +160,15 @@ int main(int argc, char **argv)
 	QApplication application(argc, argv);
 
 	SDL_Init(SDL_INIT_EVERYTHING);
-	TTF_Init();
 
 	auto window = SDL_CreateWindow("Foam", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
 	auto surface = SDL_GetWindowSurface(window);
-	auto font = TTF_OpenFont("Liberation Sans, Regular.ttf", 12);
 
 	State state;
 
 	RootState root;
 	root.window = window;
 	root.surface = surface;
-	root.font = font;
 
 	const auto tuple = std::make_tuple(root, state);
 

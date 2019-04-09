@@ -2,12 +2,17 @@
 #define COMMON_H
 
 #include <SDL.h>
-#include <SDL_ttf.h>
 
 #include "Context.h"
 
 template<typename TUserState>
-using Callback = TUserState (*)(const TUserState &state);
+using Callback = TUserState (*)(const TUserState &);
+
+template<typename TState>
+TState expand_properties(const TState &state)
+{
+	return state;
+}
 
 template<typename TState, typename TProperty>
 TState expand_properties(const TState &state, const TProperty &property)
@@ -61,8 +66,6 @@ struct RootState
 
 	SDL_Window *window;
 	SDL_Surface *surface;
-
-	TTF_Font *font;
 
 	SDL_Event event;
 };
