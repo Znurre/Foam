@@ -84,7 +84,7 @@ auto layout()
 			position = SDL_Point { 120, 100 },
 			size = SDL_Point { 100, 30 },
 			//on_clicked = &decrement_counter,
-			//text = "Foo"
+			text = "Foo"
 		},
 
 		Button
@@ -92,7 +92,7 @@ auto layout()
 			position = SDL_Point { 10, 100 },
 			size = SDL_Point { 100, 30 },
 			//on_clicked = &increment_counter,
-			//text = "Bar"
+			text = "Bar"
 		},
 
 		position = SDL_Point { 100, 10 },
@@ -154,6 +154,8 @@ auto run(const TState &state) -> decltype(layout<Operation::Update>(state))
 		)
 	);
 }
+
+
 
 int main(int argc, char **argv)
 {
