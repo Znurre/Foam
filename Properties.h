@@ -1,12 +1,24 @@
 #ifndef PROPERTIES_H
 #define PROPERTIES_H
 
+struct Property
+{
+};
+
 #define API_PROPERTY(name)\
 struct name##_Property\
 {\
 	template<typename TValue>\
-	struct Setter\
+	struct Setter : public Property\
 	{\
+		Setter(const TValue &value)\
+			: value(value)\
+		{\
+		}\
+\
+		Setter() = default;\
+		Setter(const Setter &other) = default;\
+\
 		template<typename TState>\
 		TState apply(const TState &state) const\
 		{\
@@ -19,7 +31,7 @@ struct name##_Property\
 	template<typename TValue>\
 	const auto operator =(TValue value) const\
 	{\
-		return Setter<TValue> { value };\
+		return Setter<TValue>(value);\
 	}\
 };\
 \

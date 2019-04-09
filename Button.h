@@ -32,7 +32,7 @@ template<>
 struct ButtonLogic<Operation::Initialize>
 {
 	template<typename TContext, typename ...TProperties>
-	static auto invoke(const TContext &context, TProperties &...)
+	static auto invoke(const TContext &context, const std::tuple<TProperties...> &)
 	{
 		return context_prepend(ButtonState<Level<TContext>, UserState<TContext>>(), context);
 	}
@@ -42,14 +42,14 @@ template<>
 struct ButtonLogic<Operation::Update>
 {
 	template<typename TContext, typename ...TProperties>
-	static auto invoke(const TContext &context, const TProperties &...properties)
+	static auto invoke(const TContext &context, const std::tuple<TProperties...> &properties)
 	{
 		const auto &button = std::get<ButtonState<Level<TContext>, UserState<TContext>>>(context.state);
 
 		return handle_events(
 			calculate_state(
 				repack(context,
-					apply_properties(button, properties...)
+					apply_properties(button, properties)
 				)
 			)
 		);
@@ -110,7 +110,7 @@ template<>
 struct ButtonLogic<Operation::Draw>
 {
 	template<typename TContext, typename ...TProperties>
-	static auto invoke(const TContext &context, TProperties &...)
+	static auto invoke(const TContext &context, const std::tuple<TProperties...> &)
 	{
 		const auto &button = std::get<ButtonState<Level<TContext>, UserState<TContext>>>(context.state);
 		const auto &root = std::get<RootState>(context.state);
@@ -143,7 +143,7 @@ struct ButtonLogic<Operation::Draw>
 template<typename TContext, typename ...TProperties>
 auto Button(const TContext &context, TProperties ...properties)
 {
-	return ButtonLogic<Op<TContext>>::invoke(level_up(context), properties...);
+	return ButtonLogic<Op<TContext>>::invoke(level_up(context), std::make_tuple(properties...));
 }
 
 #endif // BUTTON_H

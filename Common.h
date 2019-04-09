@@ -10,16 +10,30 @@ template<typename TUserState>
 using Callback = TUserState (*)(const TUserState &state);
 
 template<typename TState, typename TProperty>
-TState apply_properties(const TState &state, const TProperty &property)
+TState expand_properties(const TState &state, const TProperty &property)
 {
 	return property.apply(state);
 }
 
 template<typename TState, typename TProperty, typename ...TProperties>
-TState apply_properties(const TState &state, const TProperty &property, const TProperties&... properties)
+TState expand_properties(const TState &state, const TProperty &property, const TProperties&... properties)
 {
-	return apply_properties(property.apply(state), properties...);
+	return expand_properties(property.apply(state), properties...);
 }
+
+template<typename TState, typename TTuple, std::size_t ...TIndex>
+TState apply_properties(const TState &state, const TTuple &tuple, std::index_sequence<TIndex...>)
+{
+	return expand_properties(state, std::get<TIndex>(tuple)...);
+}
+
+template<typename TState, typename TTuple>
+TState apply_properties(const TState &state, const TTuple &tuple)
+{
+	return apply_properties(state, tuple, std::make_index_sequence<std::tuple_size_v<TTuple>>());
+}
+
+
 
 template<typename TState>
 auto parent(const TState &state)

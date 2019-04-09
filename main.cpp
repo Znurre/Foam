@@ -50,39 +50,87 @@ State decrement_counter(const State &state)
 	return state.with_counter(state.counter - 1);
 }
 
-template<typename TState, typename ...TProperties>
-auto ButtonComposite(const TState &state, TProperties ...properties)
+//template<typename TState, typename ...TProperties>
+//auto ButtonComposite(const TState &state, const TProperties &...properties)
+//{
+//	struct ButtonProperties
+//	{
+//		STATE_PROPERTY(SDL_Point, size);
+//		STATE_PROPERTY(SDL_Point, position);
+//	};
+
+//	const auto &values = apply_properties(ButtonProperties(), std::make_tuple(properties...));
+
+//	return
+//		MouseArea(
+//			Rectangle(
+//				Rectangle(state
+//					, size = values.size
+//					, position = values.position
+//					, color = SDL_Color { 0x0, 0x0, 0x0, 0xFF }
+//				)
+//				, size = SDL_Point { values.size.x - 2, values.size.y - 2 }
+//				, position = SDL_Point { values.position.x + 1, values.position.y + 1 }
+//				, color = SDL_Color { 0xFF, 0xFF, 0xFF, 0xFF }
+//			)
+//			, size = values.size
+//			, position = values.position
+//		);
+//}
+
+template<template<Operation> class TLogic, typename ...TParameters>
+struct Item
 {
-	struct ButtonProperties
+	Item(const TParameters &...parameters)
+		: m_parameters(parameters...)
 	{
-		STATE_PROPERTY(SDL_Point, size);
-		STATE_PROPERTY(SDL_Point, position);
-	};
+	}
 
-	const auto &values = apply_properties(ButtonProperties(), properties...);
+	static auto filter_properties(TParameters...)
+	{
+		return std::tuple_cat(std::conditional_t<std::is_base_of_v<Property, TParameters>
+			, std::tuple<TParameters>
+			, std::tuple<>>()...
+			);
+	}
 
-	return
-		MouseArea(
-			Rectangle(
-				Rectangle(state
-					, size = values.size
-					, position = values.position
-					, color = SDL_Color { 0x0, 0x0, 0x0, 0xFF }
-				)
-				, size = SDL_Point { values.size.x - 2, values.size.y - 2 }
-				, position = SDL_Point { values.position.x + 1, values.position.y + 1 }
-				, color = SDL_Color { 0xFF, 0xFF, 0xFF, 0xFF }
-			)
-			, size = values.size
-			, position = values.position
-		);
-}
+	template<typename TContext>
+	auto build(const TContext &context)
+	{
+		const auto properties = std::apply(&filter_properties, m_parameters);
+//		const auto children = std::apply(&filter_properties, m_parameters);
+
+		const auto logic = TLogic<Op<TContext>>::invoke(level_up(context), properties);
+		return 1;
+	}
+
+	std::tuple<TParameters...> m_parameters;
+};
+
+template<typename ...TParameters>
+struct ButtonItem : public Item<ButtonLogic, TParameters...>
+{
+	ButtonItem(const TParameters &...parameters)
+		: Item<ButtonLogic, TParameters...>(parameters...)
+	{
+	}
+};
 
 template<typename TContext>
 auto layout(const TContext &context)
 {
+	auto q = ButtonItem
+	{
+		ButtonItem
+		{
+		},
+		position = SDL_Point { 10, 20 }
+	};
+
+	q.build(context);
+
 	return
-		ButtonComposite(
+//		ButtonComposite(
 			Rectangle(
 				Button(
 					Button(context
@@ -99,10 +147,10 @@ auto layout(const TContext &context)
 				, position = SDL_Point { 100, 10 }
 				, size = SDL_Point { 50, 50 }
 				, color = SDL_Color { 0xFF, 0x00, 0x00, 0xFF }
-			)
-			, position = SDL_Point { 300, 10 }
-			, size = SDL_Point { 100, 100 }
-		);
+			);
+//			, position = SDL_Point { 300, 10 }
+//			, size = SDL_Point { 100, 100 }
+//		);
 }
 
 template <Operation TOperation, typename TState>
@@ -151,9 +199,8 @@ int main(int argc, char **argv)
 	root.font = font;
 
 	const auto tuple = std::make_tuple(root, state);
-	const auto context = make_context<Operation::Initialize>(tuple);
 
-	run(strip_context(layout(context)));
+	run(layout<Operation::Initialize>(tuple));
 
 	return 0;
 }

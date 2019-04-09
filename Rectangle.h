@@ -25,7 +25,7 @@ template<>
 struct RectangleLogic<Operation::Initialize>
 {
 	template<typename TContext, typename ...TProperties>
-	static auto invoke(const TContext &context, TProperties &...)
+	static auto invoke(const TContext &context, const std::tuple<TProperties...> &)
 	{
 		return context_prepend(RectangleState<Level<TContext>, UserState<TContext>>(), context);
 	}
@@ -35,12 +35,12 @@ template<>
 struct RectangleLogic<Operation::Update>
 {
 	template<typename TContext, typename ...TProperties>
-	static auto invoke(const TContext &context, const TProperties &...properties)
+	static auto invoke(const TContext &context, const std::tuple<TProperties...> &properties)
 	{
 		const auto &rectangle = std::get<RectangleState<Level<TContext>, UserState<TContext>>>(context.state);
 
 		return repack(context,
-			apply_properties(rectangle, properties...)
+			apply_properties(rectangle, properties)
 		);
 	}
 };
@@ -49,7 +49,7 @@ template<>
 struct RectangleLogic<Operation::Draw>
 {
 	template<typename TContext, typename ...TProperties>
-	static auto invoke(const TContext &context, TProperties &...)
+	static auto invoke(const TContext &context, const std::tuple<TProperties...> &)
 	{
 		const auto &rectangle = std::get<RectangleState<Level<TContext>, UserState<TContext>>>(context.state);
 		const auto &root = std::get<RootState>(context.state);
@@ -65,7 +65,7 @@ struct RectangleLogic<Operation::Draw>
 template<typename TContext, typename ...TProperties>
 auto Rectangle(const TContext &context, TProperties ...properties)
 {
-	return RectangleLogic<Op<TContext>>::invoke(level_up(context), properties...);
+	return RectangleLogic<Op<TContext>>::invoke(level_up(context), std::make_tuple(properties...));
 }
 
 #endif // RECTANGLE_H
