@@ -44,6 +44,13 @@ auto read_user_state(const TState &state)
 	return std::get<get_user_state_t<TState>>(state);
 }
 
+template<Operation TOperation, int TLevel, typename TState>
+auto read_user_state(const Context<TOperation, TLevel, TState> &context)
+{
+	return std::get<get_user_state_t<TState>>(context.state);
+}
+
+
 template<typename TState>
 auto parent(const TState &state)
 {

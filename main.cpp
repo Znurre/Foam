@@ -9,6 +9,7 @@
 #include "Button.h"
 #include "Rectangle.h"
 #include "MouseArea.h"
+#include "Component.h"
 
 struct State
 {
@@ -75,12 +76,35 @@ State decrement_counter(const State &state)
 //		);
 //}
 
+template<typename ...TParameters>
+struct ButtonComposite : public Component<ButtonComposite<TParameters...>, TParameters...>
+{
+	ButtonComposite(const TParameters &...parameters)
+		: Component<ButtonComposite, TParameters...>(parameters...)
+	{
+	}
+
+	template<typename TState>
+	static auto layout(const TState &state)
+	{
+		return Rectangle
+		{
+			position = SDL_Point { 200, 200 - state.counter * 5 },
+			size = SDL_Point { 100, 30 },
+		};
+	}
+};
 
 template<typename TState>
 auto layout(const TState &state)
 {
 	return Rectangle
 	{
+		ButtonComposite
+		{
+			color = SDL_Color { 0xFF, 0xFF, 0x00, 0xFF },
+		},
+
 		Button
 		{
 			position = SDL_Point { 120, 100 - state.counter * 5 },

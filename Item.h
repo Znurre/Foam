@@ -95,11 +95,12 @@ struct Item : public Object
 	template<typename T>
 	using ChildrenTypePredicate = std::is_base_of<Object, T>;
 
-	template<typename TContext>
-	auto build(const TContext &context) const
+	template<typename TContext, typename ...TAdditionalParameters>
+	auto build(const TContext &context, const TAdditionalParameters &...additionalParameters) const
 	{
-		const auto properties = tuple_filter<PropertyTypePredicate>(m_parameters);
-		const auto children = tuple_filter<ChildrenTypePredicate>(m_parameters);
+		const auto parameters = std::tuple_cat(m_parameters, additionalParameters...);
+		const auto properties = tuple_filter<PropertyTypePredicate>(parameters);
+		const auto children = tuple_filter<ChildrenTypePredicate>(parameters);
 
 		return expand_children(TLogic<get_operation_v<TContext>>::invoke(level_up(context), properties), children);
 	}

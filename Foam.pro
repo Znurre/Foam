@@ -34,4 +34,5 @@ HEADERS += \
     Context.h \
     Rectangle.h \
     MouseArea.h \
-    Item.h
+    Item.h \
+    Component.h
