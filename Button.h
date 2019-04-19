@@ -12,15 +12,16 @@
 #include "SDLPaintEngine.h"
 #include "Common.h"
 #include "Item.h"
+#include "Style.h"
 
 template<int TId, typename TUserState>
 struct ButtonState
 {
-	STATE_PROPERTY(VisualState, state);
-	STATE_PROPERTY(SDL_Point, size);
-	STATE_PROPERTY(SDL_Point, position);
-	STATE_PROPERTY(Callback<TUserState>, on_clicked);
-	STATE_PROPERTY(const char *, text);
+	STATE_PROPERTY(VisualState, state)
+	STATE_PROPERTY(SDL_Point, size)
+	STATE_PROPERTY(SDL_Point, position)
+	STATE_PROPERTY(Callback<TUserState>, on_clicked)
+	STATE_PROPERTY(const char *, text)
 };
 
 template<Operation TOperation>
@@ -34,7 +35,14 @@ struct ButtonLogic<Operation::Initialize>
 	template<typename TContext, typename ...TProperties>
 	static auto invoke(const TContext &context, const std::tuple<TProperties...> &)
 	{
-		return context_prepend(ButtonState<get_level_v<TContext>, get_user_state_t<TContext>>(), context);
+		const auto &button = ButtonState<get_level_v<TContext>, get_user_state_t<TContext>>();
+		const auto &new_context = context_prepend(button, context);
+
+		return expand_templates(new_context
+			, get_style_t<TContext>::ButtonStyle::Normal::layout(button)
+			, get_style_t<TContext>::ButtonStyle::Hover::layout(button)
+			, get_style_t<TContext>::ButtonStyle::Pressed::layout(button)
+			);
 	}
 };
 
@@ -44,23 +52,32 @@ struct ButtonLogic<Operation::Update>
 	template<typename TContext, typename ...TProperties>
 	static auto invoke(const TContext &context, const std::tuple<TProperties...> &properties)
 	{
-		const auto &button = std::get<ButtonState<get_level_v<TContext>, get_user_state_t<TContext>>>(context.state);
-
-		return handle_events(
-			calculate_state(
-				repack(context,
-					apply_properties(button, properties)
+		const auto &new_context =
+			handle_events(
+				calculate_state(
+					repack(context,
+						apply_properties(properties,
+							read_control_state<ButtonState>(context)
+						)
+					)
 				)
-			)
-		);
+			);
+
+		const auto &button = read_control_state<ButtonState>(new_context);
+
+		return expand_templates(new_context
+			, get_style_t<TContext>::ButtonStyle::Normal::layout(button)
+			, get_style_t<TContext>::ButtonStyle::Hover::layout(button)
+			, get_style_t<TContext>::ButtonStyle::Pressed::layout(button)
+			);
 	}
 
 	template<typename TContext>
 	static auto handle_events(const TContext &context)
 	{
 		const auto &root = std::get<RootState>(context.state);
-		const auto &user = std::get<get_user_state_t<TContext>>(context.state);
-		const auto &button = std::get<ButtonState<get_level_v<TContext>, get_user_state_t<TContext>>>(context.state);
+		const auto &user = read_user_state(context);
+		const auto &button = read_control_state<ButtonState>(context);
 
 		if (button.on_clicked == nullptr)
 		{
@@ -87,7 +104,7 @@ struct ButtonLogic<Operation::Update>
 	static auto calculate_state(const TContext &context)
 	{
 		const auto &root = std::get<RootState>(context.state);
-		const auto &button = std::get<ButtonState<get_level_v<TContext>, get_user_state_t<TContext>>>(context.state);
+		const auto &button = read_control_state<ButtonState>(context);
 
 		const SDL_Rect rect = { button.position.x, button.position.y, button.size.x, button.size.y };
 		const SDL_Point point = { root.event.motion.x, root.event.motion.y };
@@ -112,31 +129,31 @@ struct ButtonLogic<Operation::Draw>
 	template<typename TContext, typename ...TProperties>
 	static auto invoke(const TContext &context, const std::tuple<TProperties...> &)
 	{
-		const auto &button = std::get<ButtonState<get_level_v<TContext>, get_user_state_t<TContext>>>(context.state);
-		const auto &root = std::get<RootState>(context.state);
-
-		SDLPaintDevice device(root.surface);
-
-		QPainter painter(&device);
-
-		QStyleOptionButton option;
-		option.rect = QRect(button.position.x, button.position.y, button.size.x, button.size.y);
-		option.text = button.text;
-		option.state = QStyle::State_Active | QStyle::State_Enabled;
+		const auto &button = read_control_state<ButtonState>(context);
 
 		if (button.state == VisualState::Highlight)
 		{
-			option.state |= QStyle::State_MouseOver;
+			return expand_templates(context
+				, get_style_t<TContext>::ButtonStyle::Normal::layout(button) | skip
+				, get_style_t<TContext>::ButtonStyle::Hover::layout(button)
+				, get_style_t<TContext>::ButtonStyle::Pressed::layout(button) | skip
+				);
 		}
 
 		if (button.state == VisualState::Pressed)
 		{
-			option.state |= QStyle::State_Sunken;
+			return expand_templates(context
+				, get_style_t<TContext>::ButtonStyle::Normal::layout(button) | skip
+				, get_style_t<TContext>::ButtonStyle::Hover::layout(button) | skip
+				, get_style_t<TContext>::ButtonStyle::Pressed::layout(button)
+				);
 		}
 
-		QApplication::style()->drawControl(QStyle::CE_PushButton, &option, &painter, nullptr);
-
-		return context;
+		return expand_templates(context
+			, get_style_t<TContext>::ButtonStyle::Normal::layout(button)
+			, get_style_t<TContext>::ButtonStyle::Hover::layout(button) | skip
+			, get_style_t<TContext>::ButtonStyle::Pressed::layout(button) | skip
+			);
 	}
 };
 

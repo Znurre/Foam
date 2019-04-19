@@ -17,8 +17,8 @@ auto tuple_prepend(const TAddition &addition, const TTuple &tuple)
 	return std::tuple_cat(std::make_tuple(addition), tuple);
 }
 
-template<Operation TOperation, int TLevel, typename TState, typename TAddition>
-auto context_prepend(const TAddition &addition, const Context<TOperation, TLevel, TState> &context) -> Context<TOperation, TLevel, decltype(tuple_prepend(addition, context.state))>
+template<Operation TOperation, typename TStyle, int TLevel, typename TState, typename TAddition>
+auto context_prepend(const TAddition &addition, const Context<TOperation, TStyle, TLevel, TState> &context) -> Context<TOperation, TStyle, TLevel, decltype(tuple_prepend(addition, context.state))>
 {
 	return { tuple_prepend(addition, context.state) };
 }
@@ -62,8 +62,8 @@ struct Repack<0, TTuple, Element<0, TTuple>>
 	}
 };
 
-template<Operation TOperation, int TLevel, typename TTuple, typename TElement>
-Context<TOperation, TLevel, TTuple> repack(const Context<TOperation, TLevel, TTuple> &context, const TElement &element)
+template<Operation TOperation, typename TStyle, int TLevel, typename TTuple, typename TElement>
+Context<TOperation, TStyle, TLevel, TTuple> repack(const Context<TOperation, TStyle, TLevel, TTuple> &context, const TElement &element)
 {
 	return { Repack<std::tuple_size<TTuple>::value - 1, TTuple, TElement>::value(context.state, element) };
 }

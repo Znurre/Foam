@@ -54,5 +54,6 @@ API_PROPERTY(on_clicked)
 API_PROPERTY(text)
 API_PROPERTY(color)
 API_PROPERTY(on_mouse_over)
+API_PROPERTY(normal)
 
 #endif // PROPERTIES_H

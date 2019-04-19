@@ -11,14 +11,19 @@
 template<int TId, typename TUserState>
 struct RectangleState
 {
-	STATE_PROPERTY(SDL_Point, size);
-	STATE_PROPERTY(SDL_Point, position);
-	STATE_PROPERTY(SDL_Color, color);
+	STATE_PROPERTY(SDL_Point, size)
+	STATE_PROPERTY(SDL_Point, position)
+	STATE_PROPERTY(SDL_Color, color)
 };
 
 template<Operation TOperation>
 struct RectangleLogic
 {
+	template<typename TContext, typename ...TProperties>
+	static auto invoke(const TContext &context, const std::tuple<TProperties...> &)
+	{
+		return context;
+	}
 };
 
 template<>
@@ -40,7 +45,7 @@ struct RectangleLogic<Operation::Update>
 		const auto &rectangle = std::get<RectangleState<get_level_v<TContext>, get_user_state_t<TContext>>>(context.state);
 
 		return repack(context,
-			apply_properties(rectangle, properties)
+			apply_properties(properties, rectangle)
 		);
 	}
 };

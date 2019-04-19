@@ -15,9 +15,9 @@ struct Component : public Object
 	auto build(const TContext &context) const
 	{
 		const auto &state = read_user_state(context);
-		const auto &item = T::layout(state);
+		const auto &item = T::layout(state, m_parameters);
 
-		return item.build(context, m_parameters);
+		return item.build(context);
 	}
 
 	std::tuple<TParameters...> m_parameters;

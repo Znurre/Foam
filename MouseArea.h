@@ -37,7 +37,7 @@ struct MouseAreaLogic<Operation::Update>
 		const auto &rectangle = std::get<MouseAreaState<get_level_v<TContext>, get_user_state_t<TContext>>>(context.state);
 
 		return repack(context,
-			apply_properties(rectangle, properties)
+			apply_properties(properties, rectangle)
 		);
 	}
 };

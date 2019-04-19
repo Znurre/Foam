@@ -33,9 +33,15 @@ TState apply_properties(const TState &state, const TTuple &tuple, std::index_seq
 }
 
 template<typename TState, typename TTuple>
-TState apply_properties(const TState &state, const TTuple &tuple)
+TState apply_properties(const TTuple &tuple, const TState &state)
 {
 	return apply_properties(state, tuple, std::make_index_sequence<std::tuple_size_v<TTuple>>());
+}
+
+template<template<int, typename> class TControlState, typename TContext>
+auto read_control_state(const TContext &context)
+{
+	return std::get<TControlState<get_level_v<TContext>, get_user_state_t<TContext>>>(context.state);
 }
 
 template<typename TState>
@@ -44,8 +50,8 @@ auto read_user_state(const TState &state)
 	return std::get<get_user_state_t<TState>>(state);
 }
 
-template<Operation TOperation, int TLevel, typename TState>
-auto read_user_state(const Context<TOperation, TLevel, TState> &context)
+template<Operation TOperation, typename TStyle, int TLevel, typename TState>
+auto read_user_state(const Context<TOperation, TStyle, TLevel, TState> &context)
 {
 	return std::get<get_user_state_t<TState>>(context.state);
 }

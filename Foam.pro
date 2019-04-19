@@ -35,4 +35,7 @@ HEADERS += \
     Rectangle.h \
     MouseArea.h \
     Item.h \
-    Component.h
+    Component.h \
+    Application.h \
+    Style.h \
+    DefaultStyle.h
