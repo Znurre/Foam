@@ -1,5 +1,3 @@
-#include <QApplication>
-
 #include <tuple>
 
 #include "Application.h"
@@ -124,10 +122,8 @@ struct MyApplication : public Application<MyApplication, State, DefaultStyle>
 	}
 };
 
-int main(int argc, char **argv)
+int main()
 {
-	QApplication application(argc, argv);
-
 	MyApplication app;
 	app.run();
 

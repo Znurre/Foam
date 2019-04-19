@@ -1,15 +1,10 @@
 #ifndef BUTTON_H
 #define BUTTON_H
 
-#include <QApplication>
 #include <SDL.h>
 
 #include <tuple>
 
-#include <QStyleOptionButton>
-#include <QStylePainter>
-
-#include "SDLPaintEngine.h"
 #include "Common.h"
 #include "Item.h"
 #include "Style.h"
