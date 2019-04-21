@@ -11,10 +11,19 @@ struct ButtonStyle
 	typedef TPressed Pressed;
 };
 
-template<typename TButtonStyle>
+template<typename TNormal, typename THover, typename TFocused>
+struct TextBoxStyle
+{
+	typedef TNormal Normal;
+	typedef THover Hover;
+	typedef TFocused Focused;
+};
+
+template<typename TButtonStyle, typename TTextBoxStyle>
 struct Style
 {
 	typedef TButtonStyle ButtonStyle;
+	typedef TTextBoxStyle TextBoxStyle;
 };
 
 template<typename TTemplate>

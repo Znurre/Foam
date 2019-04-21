@@ -30,24 +30,26 @@ struct Application
 	}
 
 	template<typename TState>
-	auto run(const TState &state) -> decltype(layout<Operation::Update>(state))
+	void run(TState state)
 	{
 		SDL_Event event;
 
-		const auto &root = std::get<RootState>(state);
+		// This is unfortunate, but we apparently cannot rely on tail call optimization here :(
+		while (true)
+		{
+			const auto &root = std::get<RootState>(state);
 
-		SDL_UpdateWindowSurface(root.window);
+			SDL_UpdateWindowSurface(root.window);
 
-		SDL_WaitEvent(&event);
-		SDL_FillRect(root.surface, nullptr, 0xFFeff0f1);
+			SDL_WaitEvent(&event);
+			SDL_FillRect(root.surface, nullptr, 0xFFeff0f1);
 
-		return run(
-			layout<Operation::Draw>(
+			state = layout<Operation::Draw>(
 				layout<Operation::Update>(
 					repack(state, root.with_event(event))
 				)
-			)
-		);
+			);
+		}
 	}
 
 	void run()

@@ -5,6 +5,37 @@
 
 #include "Context.h"
 
+struct RootState
+{
+	RootState()
+		: focused(-1)
+	{
+	}
+
+	RootState with_event(const SDL_Event &event) const
+	{
+		RootState copy(*this);
+		copy.event = event;
+
+		return copy;
+	}
+
+	RootState with_focused(int id) const
+	{
+		RootState copy(*this);
+		copy.focused = id;
+
+		return copy;
+	}
+
+	SDL_Window *window;
+	SDL_Surface *surface;
+
+	SDL_Event event;
+
+	int focused;
+};
+
 template<typename TUserState>
 using Callback = TUserState (*)(const TUserState &);
 
@@ -56,6 +87,12 @@ auto read_user_state(const Context<TOperation, TStyle, TLevel, TState> &context)
 	return std::get<get_user_state_t<TState>>(context.state);
 }
 
+template<typename TContext>
+auto read_root_state(const TContext &context)
+{
+	return std::get<RootState>(context.state);
+}
+
 
 template<typename TState>
 auto parent(const TState &state)
@@ -66,25 +103,9 @@ auto parent(const TState &state)
 enum class VisualState
 {
 	Normal = 0,
-	Highlight,
+	Hover,
 	Pressed,
 	Disabled
-};
-
-struct RootState
-{
-	RootState with_event(const SDL_Event &event) const
-	{
-		RootState copy(*this);
-		copy.event = event;
-
-		return copy;
-	}
-
-	SDL_Window *window;
-	SDL_Surface *surface;
-
-	SDL_Event event;
 };
 
 #endif // COMMON_H

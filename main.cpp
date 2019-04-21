@@ -7,6 +7,7 @@
 #include "MouseArea.h"
 #include "Component.h"
 #include "DefaultStyle.h"
+#include "TextBox.h"
 
 struct State
 {
@@ -99,25 +100,37 @@ struct MyApplication : public Application<MyApplication, State, DefaultStyle>
 	{
 		return Rectangle
 		{
-			Button
+			TextBox
 			{
-				position = SDL_Point { 120, 100 - state.counter * 5 },
-				size = SDL_Point { 100, 30 },
-				on_clicked = &decrement_counter,
-				text = state.get_button_text()
+				position = SDL_Point { 30, 30 },
+				size = SDL_Point { 210, 30 }
+			},
+
+			TextBox
+			{
+				position = SDL_Point { 30, 70 },
+				size = SDL_Point { 210, 30 }
 			},
 
 			Button
 			{
-				position = SDL_Point { 10, 100 + state.counter * 5 },
+				position = SDL_Point { 30, 110 + state.counter * 5 },
 				size = SDL_Point { 100, 30 },
 				on_clicked = &increment_counter,
 				text = state.get_button_text()
 			},
 
-			position = SDL_Point { 100, 10 },
-			size = SDL_Point { 50, 50 },
-			color = SDL_Color { 0xFF, 0x00, 0x00, 0xFF },
+			Button
+			{
+				position = SDL_Point { 140, 110 - state.counter * 5 },
+				size = SDL_Point { 100, 30 },
+				on_clicked = &decrement_counter,
+				text = state.get_button_text()
+			},
+
+			position = SDL_Point { 10, 10 },
+			size = SDL_Point { 250, 150 },
+			color = SDL_Color { 0xfc, 0xfc, 0xfc, 0xFF },
 		};
 	}
 };

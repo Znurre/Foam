@@ -36,4 +36,5 @@ HEADERS += \
     Component.h \
     Application.h \
     Style.h \
-    DefaultStyle.h
+    DefaultStyle.h \
+    TextBox.h

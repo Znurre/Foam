@@ -98,7 +98,7 @@ struct ButtonLogic<Operation::Update>
 	template<typename TContext>
 	static auto calculate_state(const TContext &context)
 	{
-		const auto &root = std::get<RootState>(context.state);
+		const auto &root = read_root_state(context);
 		const auto &button = read_control_state<ButtonState>(context);
 
 		const SDL_Rect rect = { button.position.x, button.position.y, button.size.x, button.size.y };
@@ -114,7 +114,7 @@ struct ButtonLogic<Operation::Update>
 			return repack(context, button.with_state(VisualState::Pressed));
 		}
 
-		return repack(context, button.with_state(VisualState::Highlight));
+		return repack(context, button.with_state(VisualState::Hover));
 	}
 };
 
@@ -126,7 +126,7 @@ struct ButtonLogic<Operation::Draw>
 	{
 		const auto &button = read_control_state<ButtonState>(context);
 
-		if (button.state == VisualState::Highlight)
+		if (button.state == VisualState::Hover)
 		{
 			return expand_templates(context
 				, get_style_t<TContext>::ButtonStyle::Normal::layout(button) | skip
