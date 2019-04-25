@@ -22,7 +22,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # Input
 SOURCES += main.cpp
 
-LIBS += -lSDL2 -lSDL2main
+LIBS += -lSDL2 -lSDL2main -lGLEW -lGL
 
 HEADERS += \
     Repack.h \
@@ -38,3 +38,7 @@ HEADERS += \
     Style.h \
     DefaultStyle.h \
     TextBox.h
+
+DISTFILES += \
+    shader.vert \
+    shader.frag

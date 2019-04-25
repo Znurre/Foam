@@ -11,15 +11,15 @@ struct DefaultButtonNormalTemplate
 	{
 		return Rectangle
 		{
-			size = SDL_Point { control.size.x, control.size.y + 2 },
+			size = glm::vec2(control.size.x, control.size.y + 2),
 			position = control.position,
-			color = SDL_Color { 0xb9, 0x80, 0x29, 0xFF },
+			color = 0xffb98029,
 
 			Rectangle
 			{
 				size = control.size,
 				position = control.position,
-				color = SDL_Color { 0xf3, 0x99, 0x1d, 0xFF }
+				color = 0xfff3991d
 			}
 		};
 	}
@@ -32,15 +32,15 @@ struct DefaultButtonHoverTemplate
 	{
 		return Rectangle
 		{
-			size = SDL_Point { control.size.x, control.size.y + 2 },
+			size = glm::vec2(control.size.x, control.size.y + 2),
 			position = control.position,
-			color = SDL_Color { 0xb9, 0x80, 0x29, 0xFF },
+			color = 0xffb98029,
 
 			Rectangle
 			{
 				size = control.size,
 				position = control.position,
-				color = SDL_Color { 0xe9, 0xae, 0x3d, 0xFF }
+				color = 0xffe9ae3d
 			}
 		};
 	}
@@ -53,9 +53,9 @@ struct DefaultButtonPressedTemplate
 	{
 		return Rectangle
 		{
-			size = SDL_Point { control.size.x, control.size.y + 2 },
+			size = glm::vec2(control.size.x, control.size.y + 2),
 			position = control.position,
-			color = SDL_Color { 0xb9, 0x80, 0x29, 0xFF }
+			color = 0xffb98029
 		};
 	}
 };
@@ -69,13 +69,13 @@ struct DefaultTextBoxNormalTemplate
 		{
 			size = control.size,
 			position = control.position,
-			color = SDL_Color { 0xc7, 0xc3, 0xbd, 0xFF },
+			color = 0xffc7c3bd,
 
 			Rectangle
 			{
-				size = SDL_Point { control.size.x - 2, control.size.y - 2 },
-				position = SDL_Point { control.position.x + 1, control.position.y + 1 },
-				color = SDL_Color { 0xfc, 0xfc, 0xfc, 0xff }
+				size = glm::vec2(control.size.x - 2, control.size.y - 2),
+				position = glm::vec2(control.position.x + 1, control.position.y + 1),
+				color = 0xfffcfcfc
 			}
 		};
 	}
@@ -90,13 +90,13 @@ struct DefaultTextBoxHoverTemplate
 		{
 			size = control.size,
 			position = control.position,
-			color = SDL_Color { 0xa6, 0xa5, 0x95, 0xFF },
+			color = 0xffa6a595,
 
 			Rectangle
 			{
-				size = SDL_Point { control.size.x - 2, control.size.y - 2 },
-				position = SDL_Point { control.position.x + 1, control.position.y + 1 },
-				color = SDL_Color { 0xfc, 0xfc, 0xfc, 0xff }
+				size = glm::vec2(control.size.x - 2, control.size.y - 2),
+				position = glm::vec2(control.position.x + 1, control.position.y + 1),
+				color = 0xfffcfcfc
 			}
 		};
 	}
@@ -111,13 +111,13 @@ struct DefaultTextBoxFocusedTemplate
 		{
 			size = control.size,
 			position = control.position,
-			color = SDL_Color { 0x8d, 0x8c, 0x7f, 0xFF },
+			color = 0xff8d8c7f,
 
 			Rectangle
 			{
-				size = SDL_Point { control.size.x - 2, control.size.y - 2 },
-				position = SDL_Point { control.position.x + 1, control.position.y + 1 },
-				color = SDL_Color { 0xfc, 0xfc, 0xfc, 0xff }
+				size = glm::vec2(control.size.x - 2, control.size.y - 2),
+				position = glm::vec2(control.position.x + 1, control.position.y + 1),
+				color = 0xfffcfcfc
 			}
 		};
 	}

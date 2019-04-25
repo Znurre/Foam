@@ -11,8 +11,8 @@
 template<int TId, typename TUserState>
 struct TextBoxState
 {
-	STATE_PROPERTY(SDL_Point, size)
-	STATE_PROPERTY(SDL_Point, position)
+	STATE_PROPERTY(glm::vec2, size)
+	STATE_PROPERTY(glm::vec2, position)
 	STATE_PROPERTY(VisualState, state)
 };
 

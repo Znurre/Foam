@@ -3,17 +3,20 @@
 
 #include <SDL.h>
 
+#include <glm/gtx/matrix_transform_2d.hpp>
+
 #include <tuple>
 
 #include "Common.h"
 #include "Item.h"
 
 template<int TId, typename TUserState>
-struct RectangleState
+struct RectangleState : public DrawableControl
 {
-	STATE_PROPERTY(SDL_Point, size)
-	STATE_PROPERTY(SDL_Point, position)
-	STATE_PROPERTY(SDL_Color, color)
+	STATE_PROPERTY(glm::vec2, size)
+	STATE_PROPERTY(glm::vec2, position)
+	STATE_PROPERTY(uint, color)
+	STATE_PROPERTY(DrawCommand, draw_command)
 };
 
 template<Operation TOperation>
@@ -22,7 +25,11 @@ struct RectangleLogic
 	template<typename TContext, typename ...TProperties>
 	static auto invoke(const TContext &context, const std::tuple<TProperties...> &)
 	{
-		return context;
+		const auto &rectangle = read_control_state<RectangleState>(context);
+
+		return repack(context,
+			rectangle.with_draw_command(DrawCommand())
+		);
 	}
 };
 
@@ -42,7 +49,7 @@ struct RectangleLogic<Operation::Update>
 	template<typename TContext, typename ...TProperties>
 	static auto invoke(const TContext &context, const std::tuple<TProperties...> &properties)
 	{
-		const auto &rectangle = std::get<RectangleState<get_level_v<TContext>, get_user_state_t<TContext>>>(context.state);
+		const auto &rectangle = read_control_state<RectangleState>(context);
 
 		return repack(context,
 			apply_properties(properties, rectangle)
@@ -56,14 +63,17 @@ struct RectangleLogic<Operation::Draw>
 	template<typename TContext, typename ...TProperties>
 	static auto invoke(const TContext &context, const std::tuple<TProperties...> &)
 	{
-		const auto &rectangle = std::get<RectangleState<get_level_v<TContext>, get_user_state_t<TContext>>>(context.state);
-		const auto &root = std::get<RootState>(context.state);
+		const auto &rectangle = read_control_state<RectangleState>(context);
 
-		const SDL_Rect bounds = { rectangle.position.x, rectangle.position.y, rectangle.size.x, rectangle.size.y };
+		const DrawCommand draw_command
+		{
+			.matrix = glm::scale(glm::translate(glm::mat3(1.0f), rectangle.position), rectangle.size),
+			.color = rectangle.color
+		};
 
-		SDL_FillRect(root.surface, &bounds, *(Uint32 *)&rectangle.color);
-
-		return context;
+		return repack(context
+			, rectangle.with_draw_command(draw_command)
+		);
 	}
 };
 

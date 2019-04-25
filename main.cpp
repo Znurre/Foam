@@ -102,35 +102,35 @@ struct MyApplication : public Application<MyApplication, State, DefaultStyle>
 		{
 			TextBox
 			{
-				position = SDL_Point { 30, 30 },
-				size = SDL_Point { 210, 30 }
+				position = glm::vec2(30, 30),
+				size = glm::vec2(210, 30)
 			},
 
 			TextBox
 			{
-				position = SDL_Point { 30, 70 },
-				size = SDL_Point { 210, 30 }
+				position = glm::vec2(30, 70),
+				size = glm::vec2(210, 30)
 			},
 
 			Button
 			{
-				position = SDL_Point { 30, 110 + state.counter * 5 },
-				size = SDL_Point { 100, 30 },
+				position = glm::vec2(30, 110 + state.counter * 5),
+				size = glm::vec2(100, 30),
 				on_clicked = &increment_counter,
 				text = state.get_button_text()
 			},
 
 			Button
 			{
-				position = SDL_Point { 140, 110 - state.counter * 5 },
-				size = SDL_Point { 100, 30 },
+				position = glm::vec2(140, 110 - state.counter * 5),
+				size = glm::vec2(100, 30),
 				on_clicked = &decrement_counter,
 				text = state.get_button_text()
 			},
 
-			position = SDL_Point { 10, 10 },
-			size = SDL_Point { 250, 150 },
-			color = SDL_Color { 0xfc, 0xfc, 0xfc, 0xFF },
+			position = glm::vec2(10, 10),
+			size = glm::vec2(250, 150),
+			color = 0xfffcfcfc
 		};
 	}
 };
