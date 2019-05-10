@@ -43,6 +43,7 @@ struct RootState
 	GLuint vbo;
 	GLuint ibo;
 	GLuint vao;
+	GLuint commands;
 };
 
 struct DrawCommand

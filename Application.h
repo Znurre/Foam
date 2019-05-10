@@ -86,10 +86,7 @@ struct Application
 
 			glClear(GL_COLOR_BUFFER_BIT);
 
-			GLuint buffer;
-
-			glGenBuffers(1, &buffer);
-			glBindBuffer(GL_ARRAY_BUFFER, buffer);
+			glBindBuffer(GL_ARRAY_BUFFER, root.commands);
 			glBufferData(GL_ARRAY_BUFFER, sizeof(commands), commands.data(), GL_STATIC_DRAW);
 
 			glVertexAttribPointer(1, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(DrawCommand), (void *)sizeof(glm::mat3));
@@ -158,6 +155,7 @@ struct Application
 
 		glGenBuffers(1, &root.vbo);
 		glGenBuffers(1, &root.ibo);
+		glGenBuffers(1, &root.commands);
 
 		glUseProgram(program);
 
