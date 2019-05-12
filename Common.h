@@ -6,9 +6,30 @@
 #include <SDL.h>
 
 #include <glm/mat4x4.hpp>
+#include <freetype2/ft2build.h>
+#include <boost/range/join.hpp>
+
+#include <vector>
+
+#include FT_FREETYPE_H
 
 #include "Context.h"
 #include "Properties.h"
+#include "Vector.h"
+
+constexpr int TEXTURE_SIZE = 128;
+
+struct Glyph
+{
+	size_t index;
+
+	glm::vec4 bounds;
+
+	long ax; // advance.x
+	long ay; // advance.y
+
+	int offset;
+};
 
 struct RootState
 {
@@ -44,13 +65,23 @@ struct RootState
 	GLuint ibo;
 	GLuint vao;
 	GLuint commands;
+	GLuint font;
+
+	std::array<Glyph, 96> glyphs;
 };
 
 struct DrawCommand
 {
-	glm::mat3 matrix;
+	DrawCommand()
+		: matrix(1.0f)
+		, uv(0.0f)
+		, color(0)
+	{
+	}
 
-	uint color;
+	STATE_PROPERTY(glm::mat3, matrix)
+	STATE_PROPERTY(glm::vec4, uv)
+	STATE_PROPERTY(uint, color)
 };
 
 struct DrawableControl

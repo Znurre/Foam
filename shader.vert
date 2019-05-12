@@ -2,9 +2,12 @@
 
 layout(location = 0) in vec2 position;
 layout(location = 1) in vec4 color;
-layout(location = 2) in mat3 matrix;
+layout(location = 2) in vec4 uv;
+layout(location = 3) in mat3 matrix;
 
 out vec4 v_color;
+out vec4 v_uv;
+out vec2 v_position;
 
 void main(void)
 {
@@ -22,4 +25,6 @@ void main(void)
 	gl_Position = vec4(projection * matrix * vec3(position, 1), 1);
 
 	v_color = color;
+	v_uv = uv;
+	v_position = position;
 }

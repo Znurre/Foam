@@ -6,6 +6,7 @@
 #include <glm/gtx/matrix_transform_2d.hpp>
 
 #include <tuple>
+#include <vector>
 
 #include "Common.h"
 #include "Item.h"
@@ -16,7 +17,7 @@ struct RectangleState : public DrawableControl
 	STATE_PROPERTY(glm::vec2, size)
 	STATE_PROPERTY(glm::vec2, position)
 	STATE_PROPERTY(uint, color)
-	STATE_PROPERTY(DrawCommand, draw_command)
+	STATE_PROPERTY(immutable_vector<DrawCommand>, draw_commands)
 };
 
 template<Operation TOperation>
@@ -28,7 +29,7 @@ struct RectangleLogic
 		const auto &rectangle = read_control_state<RectangleState>(context);
 
 		return repack(context,
-			rectangle.with_draw_command(DrawCommand())
+			rectangle.with_draw_commands({})
 		);
 	}
 };
@@ -65,14 +66,12 @@ struct RectangleLogic<Operation::Draw>
 	{
 		const auto &rectangle = read_control_state<RectangleState>(context);
 
-		const DrawCommand draw_command
-		{
-			.matrix = glm::scale(glm::translate(glm::mat3(1.0f), rectangle.position), rectangle.size),
-			.color = rectangle.color
-		};
+		const auto &draw_command = DrawCommand()
+			.with_matrix(glm::scale(glm::translate(glm::mat3(1.0f), rectangle.position), rectangle.size))
+			.with_color(rectangle.color);
 
 		return repack(context
-			, rectangle.with_draw_command(draw_command)
+			, rectangle.with_draw_commands({ draw_command })
 		);
 	}
 };

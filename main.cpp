@@ -1,4 +1,5 @@
 #include <tuple>
+#include <sstream>
 
 #include "Application.h"
 #include "Properties.h"
@@ -24,13 +25,12 @@ struct State
 		return copy;
 	}
 
-	const char *get_button_text() const
+	const std::string get_button_text() const
 	{
-		static char string[100];
+		std::ostringstream stream;
+		stream << "Value: " << counter;
 
-		sprintf(string, "Value: %d", counter);
-
-		return string;
+		return stream.str();
 	}
 
 	int counter;

@@ -16,7 +16,7 @@ struct ButtonState
 	STATE_PROPERTY(glm::vec2, size)
 	STATE_PROPERTY(glm::vec2, position)
 	STATE_PROPERTY(Callback<TUserState>, on_clicked)
-	STATE_PROPERTY(const char *, text)
+	STATE_PROPERTY(std::string, text)
 };
 
 template<Operation TOperation>
@@ -84,7 +84,7 @@ struct ButtonLogic<Operation::Update>
 			return context;
 		}
 
-		const SDL_Rect rect = { button.position.x, button.position.y, button.size.x, button.size.y };
+		const SDL_Rect rect = { (int)button.position.x, (int)button.position.y, (int)button.size.x, (int)button.size.y };
 		const SDL_Point point = { root.event.motion.x, root.event.motion.y };
 
 		if (SDL_PointInRect(&point, &rect))
@@ -101,7 +101,7 @@ struct ButtonLogic<Operation::Update>
 		const auto &root = read_root_state(context);
 		const auto &button = read_control_state<ButtonState>(context);
 
-		const SDL_Rect rect = { button.position.x, button.position.y, button.size.x, button.size.y };
+		const SDL_Rect rect = { (int)button.position.x, (int)button.position.y, (int)button.size.x, (int)button.size.y };
 		const SDL_Point point = { root.event.motion.x, root.event.motion.y };
 
 		if (!SDL_PointInRect(&point, &rect))

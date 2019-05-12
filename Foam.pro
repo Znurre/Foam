@@ -5,7 +5,7 @@
 TEMPLATE = app
 TARGET = Foam
 INCLUDEPATH += . /usr/include/SDL2
-CONFIG += c++17
+CONFIG += c++17 link_pkgconfig
 CONFIG -= qt
 
 # The following define makes your compiler warn you if you use any
@@ -25,6 +25,7 @@ SOURCES += main.cpp
 LIBS += -lSDL2 -lSDL2main -lGLEW -lGL
 
 HEADERS += \
+    Algorithms.h \
     Repack.h \
     Properties.h \
     Button.h \
@@ -37,8 +38,12 @@ HEADERS += \
     Application.h \
     Style.h \
     DefaultStyle.h \
-    TextBox.h
+    Text.h \
+    TextBox.h \
+    Vector.h
 
 DISTFILES += \
     shader.vert \
     shader.frag
+
+PKGCONFIG += freetype2

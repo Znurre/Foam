@@ -29,7 +29,7 @@ struct name##_Property\
 	};\
 \
 	template<typename TValue>\
-	const auto operator =(TValue value) const\
+	auto operator =(TValue value) const\
 	{\
 		return Setter<TValue>(value);\
 	}\

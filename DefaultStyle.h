@@ -3,6 +3,7 @@
 
 #include "Style.h"
 #include "Rectangle.h"
+#include "Text.h"
 
 struct DefaultButtonNormalTemplate
 {
@@ -20,6 +21,14 @@ struct DefaultButtonNormalTemplate
 				size = control.size,
 				position = control.position,
 				color = 0xfff3991d
+			},
+
+			Text
+			{
+				size = control.size,
+				position = control.position,
+				text = control.text,
+				color = 0xffffffff
 			}
 		};
 	}
@@ -41,6 +50,14 @@ struct DefaultButtonHoverTemplate
 				size = control.size,
 				position = control.position,
 				color = 0xffe9ae3d
+			},
+
+			Text
+			{
+				size = control.size,
+				position = control.position,
+				text = control.text,
+				color = 0xffffffff
 			}
 		};
 	}
@@ -55,7 +72,15 @@ struct DefaultButtonPressedTemplate
 		{
 			size = glm::vec2(control.size.x, control.size.y + 2),
 			position = control.position,
-			color = 0xffb98029
+			color = 0xffb98029,
+
+			Text
+			{
+				size = control.size,
+				position = control.position,
+				text = control.text,
+				color = 0xffffffff
+			}
 		};
 	}
 };

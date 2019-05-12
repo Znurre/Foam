@@ -75,7 +75,7 @@ struct TextBoxLogic<Operation::Update>
 		const auto &root = read_root_state(context);
 		const auto &text_box = read_control_state<TextBoxState>(context);
 
-		const SDL_Rect rect = { text_box.position.x, text_box.position.y, text_box.size.x, text_box.size.y };
+		const SDL_Rect rect = { (int)text_box.position.x, (int)text_box.position.y, (int)text_box.size.x, (int)text_box.size.y };
 		const SDL_Point point = { root.event.motion.x, root.event.motion.y };
 
 		if (!SDL_PointInRect(&point, &rect))
@@ -97,7 +97,7 @@ struct TextBoxLogic<Operation::Update>
 		const auto &root = read_root_state(context);
 		const auto &text_box = read_control_state<TextBoxState>(context);
 
-		const SDL_Rect rect = { text_box.position.x, text_box.position.y, text_box.size.x, text_box.size.y };
+		const SDL_Rect rect = { (int)text_box.position.x, (int)text_box.position.y, (int)text_box.size.x, (int)text_box.size.y };
 		const SDL_Point point = { root.event.motion.x, root.event.motion.y };
 
 		if (!SDL_PointInRect(&point, &rect))
