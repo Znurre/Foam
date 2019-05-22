@@ -28,7 +28,8 @@ struct DefaultButtonNormalTemplate
 				size = control.size,
 				position = control.position,
 				text = control.text,
-				color = 0xffffffff
+				color = 0xffffffff,
+				alignment = AlignHCenter | AlignVCenter
 			}
 		};
 	}
@@ -57,7 +58,8 @@ struct DefaultButtonHoverTemplate
 				size = control.size,
 				position = control.position,
 				text = control.text,
-				color = 0xffffffff
+				color = 0xffffffff,
+				alignment = AlignHCenter | AlignVCenter
 			}
 		};
 	}
@@ -79,7 +81,8 @@ struct DefaultButtonPressedTemplate
 				size = control.size,
 				position = control.position,
 				text = control.text,
-				color = 0xffffffff
+				color = 0xffffffff,
+				alignment = AlignHCenter | AlignVCenter
 			}
 		};
 	}

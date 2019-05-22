@@ -68,6 +68,8 @@ struct RootState
 	GLuint font;
 
 	std::array<Glyph, 96> glyphs;
+
+	uint font_height;
 };
 
 struct DrawCommand

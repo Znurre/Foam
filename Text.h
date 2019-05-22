@@ -11,6 +11,21 @@
 #include "Item.h"
 #include "Algorithms.h"
 
+enum Alignment
+{
+	// Horizontal
+	AlignLeft = 0x0001,
+	AlignRight = 0x0002,
+	AlignHCenter = 0x0004,
+	AlignJustify = 0x0008,
+
+	// Vertical
+	AlignTop = 0x0020,
+	AlignBottom = 0x0040,
+	AlignVCenter =0x0080,
+	AlignBaseline = 0x0100,
+};
+
 template<int TId, typename TUserState>
 struct TextState : public DrawableControl
 {
@@ -19,6 +34,7 @@ struct TextState : public DrawableControl
 	STATE_PROPERTY(uint, color)
 	STATE_PROPERTY(std::string, text)
 	STATE_PROPERTY(std::vector<DrawCommand>, draw_commands)
+	STATE_PROPERTY(int, alignment)
 };
 
 template<Operation TOperation>
@@ -62,21 +78,31 @@ struct TextLogic<Operation::Update>
 template<>
 struct TextLogic<Operation::Draw>
 {
-	template<typename TContext>
-	struct TextTransformer
+	struct GlyphTransformer
 	{
-		TextTransformer(const TContext &context)
-			: context(context)
+		GlyphTransformer(const RootState &root)
+			: root(root)
 		{
 		}
 
-		std::tuple<int, DrawCommand> operator ()(const char &character, const std::tuple<int, DrawCommand> &previous) const
+		Glyph operator ()(const char &character)
 		{
-			const auto &text = read_control_state<TextState>(context);
-			const auto &root = read_root_state(context);
+			return root.glyphs[character - 32];
+		}
 
-			const auto &glyph = root.glyphs[character - 32];
+		const RootState &root;
+	};
 
+	template<typename TState>
+	struct TextTransformer
+	{
+		TextTransformer(const TState &text)
+			: text(text)
+		{
+		}
+
+		std::tuple<int, DrawCommand> operator ()(const Glyph &glyph, const std::tuple<int, DrawCommand> &previous) const
+		{
 			const auto &size = glm::vec2(glyph.bounds.z, glyph.bounds.w);
 			const auto &position = glm::vec2(text.position.x + std::get<int>(previous), text.position.y + glyph.offset);
 			const auto &uv = glyph.bounds / float(TEXTURE_SIZE);
@@ -89,7 +115,7 @@ struct TextLogic<Operation::Draw>
 			return { std::get<int>(previous) + glyph.ax, command };
 		}
 
-		const TContext &context;
+		const TState &text;
 	};
 
 	static DrawCommand transform(const std::tuple<int, DrawCommand> &tuple)
@@ -97,20 +123,84 @@ struct TextLogic<Operation::Draw>
 		return std::get<DrawCommand>(tuple);
 	}
 
+	static long accumulate_width(long width, const Glyph &glyph)
+	{
+		return width + glyph.ax;
+	}
+
+	static float accumulate_height(float height, const Glyph &glyph)
+	{
+		return std::max(height, glyph.bounds.w);
+	}
+
+	template<typename TState>
+	static glm::ivec2 get_vertical_position(const TState &text, uint font_height, const glm::ivec2 &position)
+	{
+		if (text.alignment & AlignTop)
+		{
+			return position;
+		}
+
+		if (text.alignment & AlignVCenter)
+		{
+			return glm::ivec2(position.x, position.y + (text.size.y - font_height) / 2);
+		}
+
+		return glm::ivec2(position.x, position.y + (text.size.y - font_height));
+	}
+
+	template<typename TState>
+	static glm::ivec2 get_horizontal_position(const TState &text, const std::vector<Glyph> &glyphs, const glm::ivec2 &position)
+	{
+		if (text.alignment & AlignLeft)
+		{
+			return position;
+		}
+
+		const long width = std::accumulate(std::begin(glyphs), std::end(glyphs), 0, &accumulate_width);
+
+		if (text.alignment & AlignHCenter)
+		{
+			return glm::ivec2(position.x + (text.size.x - width) / 2, position.y);
+		}
+
+		return glm::ivec2(position.x + (text.size.x - width), position.y);
+	}
+
 	template<typename TContext, typename ...TProperties>
 	static auto invoke(const TContext &context, const std::tuple<TProperties...> &)
 	{
 		const auto &text = read_control_state<TextState>(context);
+		const auto &root = read_root_state(context);
 
-		const TextTransformer<TContext> transformer(context);
+		const GlyphTransformer glyphTransformer(root);
 
 		std::vector<std::tuple<int, DrawCommand>> blueprints;
+
+		std::vector<Glyph> glyphs;
 		std::vector<DrawCommand> commands;
 
-		fold_transform(std::begin(text.text)
+		std::transform(std::begin(text.text)
 			, std::end(text.text)
+			, std::back_inserter(glyphs)
+			, glyphTransformer
+			);
+
+		if (glyphs.empty())
+		{
+			return context;
+		}
+
+		const glm::ivec2 position = get_vertical_position(text, root.font_height
+			, get_horizontal_position(text, glyphs, text.position)
+			);
+
+		const TextTransformer<decltype(text)> textTransformer(text.with_position(position));
+
+		fold_transform(std::begin(glyphs)
+			, std::end(glyphs)
 			, std::back_inserter(blueprints)
-			, transformer
+			, textTransformer
 			);
 
 		std::transform(std::begin(blueprints)

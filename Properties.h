@@ -55,5 +55,6 @@ API_PROPERTY(text)
 API_PROPERTY(color)
 API_PROPERTY(on_mouse_over)
 API_PROPERTY(normal)
+API_PROPERTY(alignment)
 
 #endif // PROPERTIES_H

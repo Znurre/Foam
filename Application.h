@@ -205,6 +205,7 @@ struct Application
 		root.window = window;
 		root.context = context;
 		root.glyphs = create_glyphs<33, 128>::value(face, 0, 0);
+		root.font_height = uint(face->height / 64);
 
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
