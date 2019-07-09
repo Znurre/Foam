@@ -7,9 +7,9 @@
 
 #include <glm/mat4x4.hpp>
 #include <freetype2/ft2build.h>
-#include <boost/range/join.hpp>
 
 #include <vector>
+#include <tuple>
 
 #include FT_FREETYPE_H
 

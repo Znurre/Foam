@@ -1,10 +1,6 @@
 #ifndef TEXT_H
 #define TEXT_H
 
-#include <vector>
-
-#include <SDL.h>
-
 #include <glm/gtx/matrix_transform_2d.hpp>
 
 #include "Common.h"
@@ -41,7 +37,7 @@ template<Operation TOperation>
 struct TextLogic
 {
 	template<typename TContext, typename ...TProperties>
-	static auto invoke(const TContext &context, const std::tuple<TProperties...> &)
+	static auto invoke(TContext &&context, const std::tuple<TProperties...> &)
 	{
 		const auto &text = read_control_state<TextState>(context);
 
@@ -55,7 +51,7 @@ template<>
 struct TextLogic<Operation::Initialize>
 {
 	template<typename TContext, typename ...TProperties>
-	static auto invoke(const TContext &context, const std::tuple<TProperties...> &)
+	static auto invoke(TContext &&context, const std::tuple<TProperties...> &)
 	{
 		return context_prepend(TextState<get_level_v<TContext>, get_user_state_t<TContext>>(), context);
 	}
@@ -65,7 +61,7 @@ template<>
 struct TextLogic<Operation::Update>
 {
 	template<typename TContext, typename ...TProperties>
-	static auto invoke(const TContext &context, const std::tuple<TProperties...> &properties)
+	static auto invoke(TContext &&context, const std::tuple<TProperties...> &properties)
 	{
 		const auto &text = read_control_state<TextState>(context);
 
@@ -87,7 +83,7 @@ struct TextLogic<Operation::Draw>
 
 		Glyph operator ()(const char &character)
 		{
-			return root.glyphs[character - 32];
+			return root.glyphs[character - 32u];
 		}
 
 		const RootState &root;
@@ -168,10 +164,15 @@ struct TextLogic<Operation::Draw>
 	}
 
 	template<typename TContext, typename ...TProperties>
-	static auto invoke(const TContext &context, const std::tuple<TProperties...> &)
+	static auto invoke(TContext &&context, const std::tuple<TProperties...> &)
 	{
 		const auto &text = read_control_state<TextState>(context);
 		const auto &root = read_root_state(context);
+
+		if (text.text.empty())
+		{
+			return context;
+		}
 
 		const GlyphTransformer glyphTransformer(root);
 

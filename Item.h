@@ -1,38 +1,36 @@
 #ifndef ITEM_H
 #define ITEM_H
 
-#include <tuple>
-
 #include "Context.h"
 #include "Properties.h"
 #include "Common.h"
 
 template<typename TContext>
-auto build_children(const TContext &context)
+auto build_children(TContext &&context)
 {
 	return context;
 }
 
 template<typename TContext, typename TChild>
-auto build_children(const TContext &context, const TChild &child)
+auto build_children(TContext &&context, const TChild &child)
 {
 	return child.build(context);
 }
 
 template<typename TContext, typename TChild, typename ...TChildren>
-auto build_children(const TContext &context, const TChild &child, const TChildren&... children)
+auto build_children(TContext &&context, const TChild &child, const TChildren&... children)
 {
 	return build_children(child.build(context), children...);
 }
 
 template<typename TContext, typename TTuple, std::size_t ...TIndex>
-auto expand_children(const TContext &context, const TTuple &tuple, std::index_sequence<TIndex...>)
+auto expand_children(TContext &&context, const TTuple &tuple, std::index_sequence<TIndex...>)
 {
 	return build_children(context, std::get<TIndex>(tuple)...);
 }
 
 template<typename TContext, typename TTuple>
-auto expand_children(const TContext &context, const TTuple &tuple)
+auto expand_children(TContext &&context, const TTuple &tuple)
 {
 	return expand_children(context, tuple, std::make_index_sequence<std::tuple_size_v<TTuple>>());
 }

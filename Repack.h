@@ -1,18 +1,16 @@
 #ifndef REPACK_H
 #define REPACK_H
 
-#include <tuple>
-
 #include "Common.h"
 
 template<typename TTuple, typename TAddition>
-auto tuple_append(const TTuple &tuple, const TAddition &addition)
+auto tuple_append(TTuple &&tuple, TAddition &&addition)
 {
 	return std::tuple_cat(tuple, std::make_tuple(addition));
 }
 
 template<typename TTuple, typename TAddition>
-auto tuple_prepend(const TAddition &addition, const TTuple &tuple)
+auto tuple_prepend(TAddition &&addition, TTuple &&tuple)
 {
 	return std::tuple_cat(std::make_tuple(addition), tuple);
 }

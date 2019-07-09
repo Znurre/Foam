@@ -14,6 +14,9 @@ struct State
 {
 	State()
 		: counter(0)
+		, frames(0)
+		, fps(0)
+		, time({0, 0})
 	{
 	}
 
@@ -25,6 +28,28 @@ struct State
 		return copy;
 	}
 
+	State increment_fps() const
+	{
+		State copy(*this);
+		copy.frames++;
+
+		return copy;
+	}
+
+	State swap_fps() const
+	{
+		State copy(*this);
+		copy.fps = frames;
+		copy.frames = 0;
+
+		return copy;
+	}
+
+	const std::string get_fps() const
+	{
+		return std::to_string(fps);
+	}
+
 	const std::string get_button_text() const
 	{
 		std::ostringstream stream;
@@ -34,6 +59,10 @@ struct State
 	}
 
 	int counter;
+	int frames;
+	int fps;
+
+	timespec time;
 };
 
 template<typename ...TParameters>
@@ -86,6 +115,29 @@ struct ButtonComposite : public Component<ButtonComposite<TParameters...>, TPara
 
 struct MyApplication : public Application<MyApplication, State, DefaultStyle>
 {
+	State init_state() override
+	{
+		State state;
+
+		clock_gettime(CLOCK_MONOTONIC, &state.time);
+
+		return state;
+	}
+
+	State update_state(const State &state) override
+	{
+		State copy(state);
+
+		clock_gettime(CLOCK_MONOTONIC, &copy.time);
+
+		if ((copy.time.tv_sec - state.time.tv_sec) >= 1)
+		{
+			return copy.swap_fps();
+		}
+
+		return copy.increment_fps();
+	}
+
 	static State increment_counter(const State &state)
 	{
 		return state.with_counter(state.counter + 1);
@@ -130,7 +182,15 @@ struct MyApplication : public Application<MyApplication, State, DefaultStyle>
 
 			position = glm::vec2(10, 10),
 			size = glm::vec2(250, 150),
-			color = 0xfffcfcfc
+			color = 0xfffcfcfc,
+
+			Text
+			{
+				position = glm::vec2(10, 170),
+				size = glm::vec2(250, 20),
+				color = 0xffffffff,
+				text = state.get_fps()
+			}
 		};
 	}
 };

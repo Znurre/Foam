@@ -1,16 +1,6 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
-#include <iostream>
-#include <vector>
-#include <numeric>
-
-#include <boost/range/join.hpp>
-
-#include <SDL.h>
-
-#include <GL/glew.h>
-
 #include <freetype2/ft2build.h>
 
 #include FT_FREETYPE_H
@@ -137,16 +127,20 @@ struct Application
 		{
 			const auto &root = std::get<RootState>(state);
 
-			SDL_WaitEvent(&event);
+			SDL_PollEvent(&event);
 
 			if (event.type == SDL_QUIT)
 			{
 				return;
 			}
 
+			const auto &user = std::get<TUserState>(state);
+			const auto &updated_state = repack(state, update_state(user));
+			const auto &with_events = repack(updated_state, root.with_event(event));
+
 			state = layout<Operation::Draw>(
 				layout<Operation::Update>(
-					repack(state, root.with_event(event))
+					with_events
 				)
 			);
 

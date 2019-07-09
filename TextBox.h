@@ -1,10 +1,6 @@
 #ifndef TEXTBOX_H
 #define TEXTBOX_H
 
-#include <SDL.h>
-
-#include <tuple>
-
 #include "Common.h"
 #include "Item.h"
 
