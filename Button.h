@@ -24,7 +24,7 @@ template<>
 struct ButtonLogic<Operation::Initialize>
 {
 	template<typename TContext, typename ...TProperties>
-	static auto invoke(TContext &&context, const std::tuple<TProperties...> &)
+	static auto invoke(const TContext &context, const std::tuple<TProperties...> &)
 	{
 		const auto &button = ButtonState<get_level_v<TContext>, get_user_state_t<TContext>>();
 		const auto &new_context = context_prepend(button, context);
@@ -41,7 +41,7 @@ template<>
 struct ButtonLogic<Operation::Update>
 {
 	template<typename TContext, typename ...TProperties>
-	static auto invoke(TContext &&context, const std::tuple<TProperties...> &properties)
+	static auto invoke(const TContext &context, const std::tuple<TProperties...> &properties)
 	{
 		const auto &new_context =
 			handle_events(
@@ -64,7 +64,7 @@ struct ButtonLogic<Operation::Update>
 	}
 
 	template<typename TContext>
-	static auto handle_events(TContext &&context)
+	static auto handle_events(const TContext &context)
 	{
 		const auto &root = std::get<RootState>(context.state);
 		const auto &user = read_user_state(context);
@@ -118,7 +118,7 @@ template<>
 struct ButtonLogic<Operation::Draw>
 {
 	template<typename TContext, typename ...TProperties>
-	static auto invoke(TContext &&context, const std::tuple<TProperties...> &)
+	static auto invoke(const TContext &context, const std::tuple<TProperties...> &)
 	{
 		const auto &button = read_control_state<ButtonState>(context);
 

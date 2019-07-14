@@ -1,6 +1,8 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
+#include <iostream>
+
 #include <freetype2/ft2build.h>
 
 #include FT_FREETYPE_H
@@ -70,24 +72,6 @@ struct create_glyphs<TStart, TStart>
 	}
 };
 
-template<typename TControl>
-auto get_draw_command(const TControl &control)
-{
-	return control.draw_commands;
-}
-
-template<typename TTuple, std::size_t ...TIndex>
-immutable_vector<DrawCommand> extract_draw_commands(const TTuple &tuple, std::index_sequence<TIndex...>)
-{
-	return { get_draw_command(std::get<std::tuple_size_v<TTuple> - (TIndex + 1)>(tuple))... };
-}
-
-template<typename TTuple>
-auto extract_draw_commands(const TTuple &tuple)
-{
-	return extract_draw_commands(tuple, std::make_index_sequence<std::tuple_size_v<TTuple>>());
-}
-
 template<typename TApplication, typename TUserState, typename TStyle>
 struct Application
 {
@@ -127,7 +111,7 @@ struct Application
 		{
 			const auto &root = std::get<RootState>(state);
 
-			SDL_PollEvent(&event);
+			SDL_WaitEvent(&event);
 
 			if (event.type == SDL_QUIT)
 			{
@@ -145,6 +129,15 @@ struct Application
 			);
 
 			const auto &drawables = tuple_filter<DrawableControlTypePredicate>(state);
+			const auto &hash = compute_hash(drawables);
+
+			if (hash == root.hash)
+			{
+				continue;
+			}
+
+			state = repack(state, root.with_hash(hash));
+
 			const auto &commands = extract_draw_commands(drawables);
 
 			glClear(GL_COLOR_BUFFER_BIT);
@@ -186,7 +179,7 @@ struct Application
 
 		glewInit();
 
-		SDL_GL_SetSwapInterval(0);
+		SDL_GL_SetSwapInterval(1);
 
 		FT_Library library;
 		FT_Face face;

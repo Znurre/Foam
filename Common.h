@@ -5,17 +5,12 @@
 
 #include <SDL.h>
 
-#include <glm/mat4x4.hpp>
 #include <freetype2/ft2build.h>
-
-#include <vector>
-#include <tuple>
 
 #include FT_FREETYPE_H
 
 #include "Context.h"
-#include "Properties.h"
-#include "Vector.h"
+#include "DrawCommand.h"
 
 constexpr int TEXTURE_SIZE = 128;
 
@@ -70,20 +65,8 @@ struct RootState
 	std::array<Glyph, 96> glyphs;
 
 	uint font_height;
-};
 
-struct DrawCommand
-{
-	DrawCommand()
-		: matrix(1.0f)
-		, uv(0.0f)
-		, color(0)
-	{
-	}
-
-	STATE_PROPERTY(glm::mat3, matrix)
-	STATE_PROPERTY(glm::vec4, uv)
-	STATE_PROPERTY(uint, color)
+	STATE_PROPERTY(uint32_t, hash)
 };
 
 struct DrawableControl

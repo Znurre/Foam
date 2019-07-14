@@ -17,7 +17,7 @@ struct RectangleState : public DrawableControl
 	STATE_PROPERTY(glm::vec2, size)
 	STATE_PROPERTY(glm::vec2, position)
 	STATE_PROPERTY(uint, color)
-	STATE_PROPERTY(immutable_vector<DrawCommand>, draw_commands)
+	STATE_PROPERTY(std::vector<DrawCommand>, draw_commands)
 };
 
 template<Operation TOperation>

@@ -1,6 +1,8 @@
 #ifndef TEXT_H
 #define TEXT_H
 
+#include <iostream>
+
 #include <glm/gtx/matrix_transform_2d.hpp>
 
 #include "Common.h"
@@ -29,6 +31,7 @@ struct TextState : public DrawableControl
 	STATE_PROPERTY(glm::vec2, position)
 	STATE_PROPERTY(uint, color)
 	STATE_PROPERTY(std::string, text)
+	STATE_PROPERTY(std::string, previous_text)
 	STATE_PROPERTY(std::vector<DrawCommand>, draw_commands)
 	STATE_PROPERTY(int, alignment)
 };
@@ -37,13 +40,14 @@ template<Operation TOperation>
 struct TextLogic
 {
 	template<typename TContext, typename ...TProperties>
-	static auto invoke(TContext &&context, const std::tuple<TProperties...> &)
+	static auto invoke(const TContext &context, const std::tuple<TProperties...> &)
 	{
 		const auto &text = read_control_state<TextState>(context);
 
-		return repack(context,
-			text.with_draw_commands({})
-		);
+		return repack(context, text
+			.with_draw_commands({})
+			.with_previous_text(std::string())
+			);
 	}
 };
 
@@ -51,7 +55,7 @@ template<>
 struct TextLogic<Operation::Initialize>
 {
 	template<typename TContext, typename ...TProperties>
-	static auto invoke(TContext &&context, const std::tuple<TProperties...> &)
+	static auto invoke(const TContext &context, const std::tuple<TProperties...> &)
 	{
 		return context_prepend(TextState<get_level_v<TContext>, get_user_state_t<TContext>>(), context);
 	}
@@ -61,7 +65,7 @@ template<>
 struct TextLogic<Operation::Update>
 {
 	template<typename TContext, typename ...TProperties>
-	static auto invoke(TContext &&context, const std::tuple<TProperties...> &properties)
+	static auto invoke(const TContext &context, const std::tuple<TProperties...> &properties)
 	{
 		const auto &text = read_control_state<TextState>(context);
 
@@ -164,12 +168,17 @@ struct TextLogic<Operation::Draw>
 	}
 
 	template<typename TContext, typename ...TProperties>
-	static auto invoke(TContext &&context, const std::tuple<TProperties...> &)
+	static auto invoke(const TContext &context, const std::tuple<TProperties...> &)
 	{
-		const auto &text = read_control_state<TextState>(context);
+		const auto &control = read_control_state<TextState>(context);
 		const auto &root = read_root_state(context);
 
-		if (text.text.empty())
+		if (control.text.empty())
+		{
+			return context;
+		}
+
+		if (control.text == control.previous_text)
 		{
 			return context;
 		}
@@ -181,22 +190,17 @@ struct TextLogic<Operation::Draw>
 		std::vector<Glyph> glyphs;
 		std::vector<DrawCommand> commands;
 
-		std::transform(std::begin(text.text)
-			, std::end(text.text)
+		std::transform(std::begin(control.text)
+			, std::end(control.text)
 			, std::back_inserter(glyphs)
 			, glyphTransformer
 			);
 
-		if (glyphs.empty())
-		{
-			return context;
-		}
-
-		const glm::ivec2 position = get_vertical_position(text, root.font_height
-			, get_horizontal_position(text, glyphs, text.position)
+		const glm::ivec2 position = get_vertical_position(control, root.font_height
+			, get_horizontal_position(control, glyphs, control.position)
 			);
 
-		const TextTransformer<decltype(text)> textTransformer(text.with_position(position));
+		const TextTransformer<decltype(control)> textTransformer(control.with_position(position));
 
 		fold_transform(std::begin(glyphs)
 			, std::end(glyphs)
@@ -210,9 +214,10 @@ struct TextLogic<Operation::Draw>
 			, transform
 			);
 
-		return repack(context
-			, text.with_draw_commands(commands)
-		);
+		return repack(context, control
+			.with_draw_commands(commands)
+			.with_previous_text(control.text)
+			);
 	}
 };
 

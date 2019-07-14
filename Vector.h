@@ -30,7 +30,7 @@ class immutable_vector
 		}
 
 		template<typename ...TVector>
-		immutable_vector(TVector &&... vectors)
+		immutable_vector(const TVector &... vectors)
 			: m_size((vectors.size() + ...))
 			, m_storage(new T[m_size])
 		{
@@ -49,7 +49,7 @@ class immutable_vector
 
 	private:
 		template<typename THead, typename ...TTail>
-		static void copy(T *target, THead &&head, TTail &&...tail)
+		static void copy(T *target, const THead &head, const TTail &...tail)
 		{
 			memcpy(target, head.data(), head.size() * sizeof(T));
 
@@ -57,7 +57,7 @@ class immutable_vector
 		}
 
 		template<typename THead>
-		static void copy(T *target, THead &&head)
+		static void copy(T *target, const THead &head)
 		{
 			memcpy(target, head.data(), head.size() * sizeof(T));
 		}

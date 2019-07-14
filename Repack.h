@@ -4,13 +4,13 @@
 #include "Common.h"
 
 template<typename TTuple, typename TAddition>
-auto tuple_append(TTuple &&tuple, TAddition &&addition)
+auto tuple_append(const TTuple &tuple, const TAddition &addition)
 {
 	return std::tuple_cat(tuple, std::make_tuple(addition));
 }
 
 template<typename TTuple, typename TAddition>
-auto tuple_prepend(TAddition &&addition, TTuple &&tuple)
+auto tuple_prepend(const TAddition &addition, TTuple &&tuple)
 {
 	return std::tuple_cat(std::make_tuple(addition), tuple);
 }

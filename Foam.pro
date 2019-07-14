@@ -26,6 +26,7 @@ LIBS += -lSDL2 -lSDL2main -lGLEW -lGL
 
 HEADERS += \
     Algorithms.h \
+    DrawCommand.h \
     Repack.h \
     Properties.h \
     Button.h \

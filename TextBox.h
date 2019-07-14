@@ -1,7 +1,6 @@
 #ifndef TEXTBOX_H
 #define TEXTBOX_H
 
-#include "Common.h"
 #include "Item.h"
 
 template<int TId, typename TUserState>
